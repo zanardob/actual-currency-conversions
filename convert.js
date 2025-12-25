@@ -1,6 +1,6 @@
 import actualApi from "@actual-app/api";
 import Exchange from "./lib/exchangeRates.js";
-import Config from "./config.js";
+import { ACTUAL_CONFIG } from "./config.js";
 
 const main = async () => {
   await actualApi.init({
@@ -8,13 +8,13 @@ const main = async () => {
     serverURL: process.env.ACTUAL_SERVER_URL || "http://localhost:5006",
     password: process.env.ACTUAL_PASSWORD,
   });
-  await actualApi.downloadBudget(Config.syncId);
+  await actualApi.downloadBudget(ACTUAL_CONFIG.syncId);
 
-  for (let account of Config.convertAccounts) {
+  for (let account of ACTUAL_CONFIG.convertAccounts) {
     try {
       const exchange = new Exchange({
         fromCurrency: account.fromCurrency,
-        toCurrency: Config.toCurrency,
+        toCurrency: ACTUAL_CONFIG.toCurrency,
       });
 
       let transactions = await actualApi.getTransactions(account.id);
@@ -26,7 +26,7 @@ const main = async () => {
       );
       if (transactions.length === 0) {
         console.log(
-          `No transactions to convert for account ${account.id} (${account.fromCurrency} to ${Config.toCurrency}).`
+          `No transactions to convert for account ${account.id} (${account.fromCurrency} to ${ACTUAL_CONFIG.toCurrency}).`
         );
         continue;
       }

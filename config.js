@@ -1,5 +1,5 @@
 // Use ISO 4217 for currency codes
-const Config = {
+export const ACTUAL_CONFIG = {
   // Under Actual > Advanced Settings
   syncId: "5a94121f-a446-4349-a21a-53b9ce4199a0",
   convertAccounts: [
@@ -10,5 +10,3 @@ const Config = {
   ],
   toCurrency: "EUR",
 };
-
-export default Config;

@@ -1,14 +1,16 @@
+// Use ISO 4217 for currency codes
 const Config = {
-  syncId: "<your-sync-id>", // Replace with your sync ID
-  history: 90, // Days of historical exchange rate data to fetch
+  // Under Actual > Advanced Settings
+  syncId: "5a94121f-a446-4349-a21a-53b9ce4199a0",
+  // How many days of historical rates to fetch
+  history: 90,
   convertAccounts: [
     {
       id: "<your-account-id>",
-      fromCurrency: "EUR", // ISO 4217 currency code
+      fromCurrency: "BRL",
     },
-    // Any further accounts can be added here...
   ],
-  toCurrency: "SEK", // ISO 4217 currency code
+  toCurrency: "EUR",
 };
 
 export default Config;

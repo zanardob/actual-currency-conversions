@@ -1,29 +1,28 @@
-import api from "@actual-app/api";
+import actualApi from "@actual-app/api";
 import Exchange from "./lib/exchangeRates.js";
 import Config from "./config.js";
 
-(async () => {
-  await api.init({
+const main = async () => {
+  await actualApi.init({
     dataDir: "./actual-cache",
     serverURL: process.env.ACTUAL_SERVER_URL || "http://localhost:5006",
     password: process.env.ACTUAL_PASSWORD,
   });
-
-  await api.downloadBudget(Config.syncId);
+  await actualApi.downloadBudget(Config.syncId);
 
   for (let account of Config.convertAccounts) {
     try {
       const exchange = new Exchange({
         fromCurrency: account.fromCurrency,
         toCurrency: Config.toCurrency,
-        history: Config.history,
       });
-      let transactions = await api.getTransactions(account.id);
-      let count = 0;
-      // Check if all transactions have been converted.
-      transactions = transactions.filter(
-        (transaction) =>
-          !transaction.notes?.startsWith(`${Config.toCurrency}: `)
+
+      let transactions = await actualApi.getTransactions(account.id);
+      let convertedTransactionsCount = 0;
+
+      // Check if there are transactions to convert
+      transactions = transactions.filter((transaction) =>
+        !transaction.notes?.includes(`${account.fromCurrency} @`)
       );
       if (transactions.length === 0) {
         console.log(
@@ -31,33 +30,37 @@ import Config from "./config.js";
         );
         continue;
       }
-      await exchange.getRates();
+
+      await exchange.fetchRates();
+
       for (let transaction of transactions) {
-        // Skip transactions that have already been converted.
-        if (transaction.notes?.startsWith(`${Config.toCurrency}: `)) {
-          continue;
-        }
-        // NOTE: values are in cents; rounded after conversion.
-        const amount = exchange.applyRate(transaction.amount, transaction.date);
+        // Values are in cents; rounded after conversion
+        const { amount, rate } = exchange.applyRate(transaction.amount, transaction.date);
         if (!amount) {
           console.warn(
-            `Skipping transaction ${JSON.stringify(
-              transaction
-            )} as no conversion rate was found.`
+            `Skipping transaction ${JSON.stringify(transaction)} as no conversion rate was found.`
           );
           continue;
         }
-        await api.updateTransaction(transaction.id, {
-          notes: `${Config.toCurrency}: ` + transaction.notes,
+
+        const originalAmount = (transaction.amount / 100).toFixed(2)
+        const formattedRate = Number.parseFloat((rate).toFixed(6)).toString()
+        const noteSuffix = transaction.notes ? ` • ${transaction.notes}` : ''
+
+        await actualApi.updateTransaction(transaction.id, {
+          notes: `${originalAmount} ${account.fromCurrency} @ ${formattedRate}${noteSuffix}`,
           amount: amount,
         });
-        count++;
+        convertedTransactionsCount++;
       }
-      console.log("Converted", count, "transactions.");
+
+      console.log(`Converted ${convertedTransactionsCount} transactions.`);
     } catch (e) {
       console.error(e);
     }
   }
 
-  await api.shutdown();
-})();
+  await actualApi.shutdown();
+}
+
+await main();

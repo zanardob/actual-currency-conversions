@@ -1,5 +1,6 @@
 actual-data
 actual-cache
 node_modules
+.idea
 .env
 .DS_Store

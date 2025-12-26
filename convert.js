@@ -1,5 +1,5 @@
 import actualApi from "@actual-app/api";
-import Exchange from "./lib/exchangeRates.js";
+import createExchange from "./lib/exchangeRates.js";
 import { ACTUAL_CONFIG } from "./config.js";
 
 const main = async () => {
@@ -12,7 +12,7 @@ const main = async () => {
 
   for (let account of ACTUAL_CONFIG.convertAccounts) {
     try {
-      const exchange = new Exchange({
+      const exchange = createExchange({
         fromCurrency: account.fromCurrency,
         toCurrency: ACTUAL_CONFIG.toCurrency,
       });

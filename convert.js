@@ -2,6 +2,12 @@ import actualApi from "@actual-app/api";
 import createExchange from "./lib/exchangeRates.js";
 import { ACTUAL_CONFIG } from "./config.js";
 
+/**
+ * Converts transactions in configured accounts from their source currency to the target currency.
+ * Fetches historical exchange rates and updates each transaction with the converted amount
+ * and a note containing the original amount and rate used.
+ * @returns {Promise<void>}
+ */
 const main = async () => {
   await actualApi.init({
     dataDir: "./actual-cache",
@@ -61,6 +67,6 @@ const main = async () => {
   }
 
   await actualApi.shutdown();
-}
+};
 
 await main();

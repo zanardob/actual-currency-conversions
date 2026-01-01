@@ -5,6 +5,8 @@ import { ACTUAL_CONFIG } from "./config.js";
  * Lists all accounts in the configured Actual Budget instance.
  */
 const listAccounts = async () => {
+  console.log("Fetching accounts...");
+
   await actualApi.init({
     dataDir: "./actual-cache",
     serverURL: process.env.ACTUAL_SERVER_URL,

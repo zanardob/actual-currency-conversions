@@ -1,12 +1,10 @@
 import actualApi from "@actual-app/api";
-import { ACTUAL_CONFIG } from "../config.js";
+import { ACTUAL_CONFIG } from "./config.js";
 
 /**
  * Lists all accounts in the configured Actual Budget instance.
- * Useful for finding account IDs to use in config.js.
- * @returns {Promise<void>}
  */
-const main = async () => {
+const listAccounts = async () => {
   await actualApi.init({
     dataDir: "./actual-cache",
     serverURL: process.env.ACTUAL_SERVER_URL || "http://localhost:5006",
@@ -24,4 +22,6 @@ const main = async () => {
   }
 };
 
-await main();
+if (import.meta.url === `file://${process.argv[1]}`) {
+  listAccounts();
+}

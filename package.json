@@ -1,20 +1,19 @@
 {
   "type": "module",
   "scripts": {
-    "build": "tsc",
-    "start": "ts-node src/convert.ts",
-    "list-accounts": "ts-node src/listAccounts.ts",
-    "convert": "ts-node src/convert.ts"
+    "type-check": "tsc --noEmit",
+    "list-accounts": "tsx src/listAccounts.ts",
+    "convert": "tsx src/convert.ts"
   },
   "dependencies": {
     "@actual-app/api": "25.12.0",
     "dayjs": "1.11.19",
-    "node-cron": "^4.2.1"
+    "node-cron": "^4.2.1",
+    "tsx": "^4.21.0"
   },
   "devDependencies": {
     "@types/node": "^25.0.3",
     "@types/node-cron": "^3.0.11",
-    "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   }
 }

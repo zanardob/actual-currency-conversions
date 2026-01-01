@@ -10,6 +10,9 @@ interface ActualConfig {
   toCurrency: string;
 }
 
+/**
+ * Configuration settings for the conversions.
+ */
 export const ACTUAL_CONFIG: ActualConfig = {
   syncId: "5a94121f-a446-4349-a21a-53b9ce4199a0",
   convertAccounts: [
@@ -26,3 +29,8 @@ export const ACTUAL_CONFIG: ActualConfig = {
   ],
   toCurrency: "EUR",
 };
+
+/**
+ * How many days to look back for account activity.
+ */
+export const LOOKBACK_DAYS = 365;

@@ -1,5 +1,5 @@
 import dayjs from "dayjs";
-import {LOOKBACK_DAYS} from "./const";
+import { LOOKBACK_DAYS } from "./config";
 
 interface ExchangeOptions {
   fromCurrency: string;

@@ -1,9 +1,8 @@
 import actualApi from "@actual-app/api";
 import cron from "node-cron";
 import dayjs from "dayjs";
-import createExchange from "./exchangeRates.js";
-import { ACTUAL_CONFIG } from "./config.js";
-import {LOOKBACK_DAYS} from "./const";
+import createExchange from "./exchangeRates";
+import { ACTUAL_CONFIG, LOOKBACK_DAYS } from "./config";
 
 /**
  * Converts transactions in configured accounts from their source currency to the target currency.

@@ -1,5 +1,5 @@
 import actualApi from "@actual-app/api";
-import { ACTUAL_CONFIG } from "./config.js";
+import { ACTUAL_CONFIG } from "./config";
 
 /**
  * Lists all accounts in the configured Actual Budget instance.

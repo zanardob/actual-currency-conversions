@@ -1,6 +1,6 @@
-actual-data
-actual-cache
-node_modules
-.idea
+.idea/
+node_modules/
+dist/
+
 .env
 .DS_Store

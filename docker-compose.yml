@@ -1,22 +1,19 @@
 services:
-  actual_server:
-    container_name: dual-actual
-    build:
-      context: .
-      dockerfile: Dockerfile.dual-actual
-    ports:
-      # This line makes Actual available at port 5006 of the device you run the server on,
-      # i.e. http://localhost:5006. You can change the first number to change the port, if you want.
-      - '5006:5006'
-    env_file:
-      - .env
+  actual-currency-conversions:
+    build: .
+    container_name: "actual-currency-conversions"
+    restart: "always"
+    environment:
+      - ACTUAL_SERVER_URL=http://actual-budget:5006
+      - ACTUAL_PASSWORD=${ACTUAL_PASSWORD}
+      - TWELVE_DATA_API_KEY=${TWELVE_DATA_API_KEY}
     volumes:
-      # Change './actual-data' below to the path to the folder you want Actual to store its data in on your server.
-      # '/data' is the path Actual will look for its files in by default, so leave that as-is.
-      - ./actual-data:/data
-      - ./actual-cache:/app/actual-cache
-      - ./lib:/app/lib
-      - ./convert.js:/app/convert.js  # External conversion script
-      - ./config.js:/app/config.js  # Config file
-    restart: unless-stopped
-    # command: node convert.js
+      - "./actualcurrencyconversions:/app/actual-cache"
+    networks:
+      - "proxy"
+    healthcheck:
+      test: ["CMD-SHELL", "pgrep -f 'tsx src/convert.ts' || exit 1"]
+      interval: "60s"
+      timeout: "10s"
+      retries: "3"
+      start_period: "20s"

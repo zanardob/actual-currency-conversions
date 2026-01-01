@@ -1,4 +1,5 @@
 import dayjs from "dayjs";
+import {LOOKBACK_DAYS} from "./const";
 
 interface ExchangeOptions {
   fromCurrency: string;
@@ -16,8 +17,6 @@ interface Exchange {
   fetchRates: () => Promise<void>;
   applyRate: (amount: number, date: string) => ConversionResult;
 }
-
-const LOOKBACK_DAYS = 365;
 
 /**
  * Creates an exchange rate converter that fetches and applies historical rates.

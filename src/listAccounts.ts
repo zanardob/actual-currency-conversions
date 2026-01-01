@@ -7,7 +7,7 @@ import { ACTUAL_CONFIG } from "./config.js";
 const listAccounts = async () => {
   await actualApi.init({
     dataDir: "./actual-cache",
-    serverURL: process.env.ACTUAL_SERVER_URL || "http://localhost:5006",
+    serverURL: process.env.ACTUAL_SERVER_URL,
     password: process.env.ACTUAL_PASSWORD,
   });
   await actualApi.downloadBudget(ACTUAL_CONFIG.syncId);

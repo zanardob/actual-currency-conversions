@@ -3,6 +3,7 @@ import cron from "node-cron";
 import dayjs from "dayjs";
 import createExchange from "./exchangeRates.js";
 import { ACTUAL_CONFIG } from "./config.js";
+import {LOOKBACK_DAYS} from "./const";
 
 /**
  * Converts transactions in configured accounts from their source currency to the target currency.
@@ -12,7 +13,7 @@ const convert = async () => {
 
   await actualApi.init({
     dataDir: "./actual-cache",
-    serverURL: process.env.ACTUAL_SERVER_URL || "http://localhost:5006",
+    serverURL: process.env.ACTUAL_SERVER_URL,
     password: process.env.ACTUAL_PASSWORD,
   });
   await actualApi.downloadBudget(ACTUAL_CONFIG.syncId);
@@ -24,7 +25,7 @@ const convert = async () => {
         toCurrency: ACTUAL_CONFIG.toCurrency,
       });
 
-      const dateStart = dayjs().subtract(365, "days").format("YYYY-MM-DD");
+      const dateStart = dayjs().subtract(LOOKBACK_DAYS, "days").format("YYYY-MM-DD");
       const dateEnd = dayjs().format("YYYY-MM-DD");
       let transactions = await actualApi.getTransactions(account.id, dateStart, dateEnd);
       let convertedTransactionsCount = 0;

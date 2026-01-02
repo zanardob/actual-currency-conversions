@@ -15,7 +15,12 @@ A Docker-based service for automatic currency conversion in [Actual Budget](http
 - Docker and Docker Compose
 - A [Twelve Data API key](https://twelvedata.com/pricing) (free tier: 800 calls/month)
 
-## Development Setup
+## Deployment
+
+Docker images are automatically built and published to GitHub Container Registry when version tags are pushed.
+The workflow triggers on tags matching `v*.*.*` (e.g., `v1.0.0`) and publishes images with semantic versioning tags.
+
+## Setup
 
 ### 1. Configure Environment Variables
 
@@ -43,42 +48,25 @@ $ docker exec -it actual-currency-conversions npm run list-accounts
 
 ### 3. Deploy the Service
 
-Add the service definition to your existing docker-compose.yml (alongside your Actual Budget service):
+Add the service definition to your existing `docker-compose.yml` (alongside your Actual Budget service).
+The Actual Budget service should also use the same "proxy" network to allow communication between the two containers.
 
-```yaml
-services:
-  actual-currency-conversions:
-    build: .
-    container_name: "actual-currency-conversions"
-    restart: "always"
-    environment:
-      - ACTUAL_SERVER_URL=http://actual-budget:5006
-      - ACTUAL_PASSWORD=${ACTUAL_PASSWORD}
-      - TWELVE_DATA_API_KEY=${TWELVE_DATA_API_KEY}
-    volumes:
-      - "./actualcurrencyconversions:/app/actual-cache"
-    networks:
-      - "proxy"
-    healthcheck:
-      test: ["CMD-SHELL", "pgrep -f 'tsx src/convert.ts' || exit 1"]
-      interval: "60s"
-      timeout: "10s"
-      retries: "3"
-      start_period: "30s"
-```
-
-**Note**: Ensure the `ACTUAL_SERVER_URL` matches your Actual Budget container name and port. If using an external network, declare it:
-
-```yaml
-networks:
-  proxy:
-    external: true
-```
+**Note**: 
+- The image is pulled from GitHub Container Registry.
+- Ensure the `ACTUAL_SERVER_URL` matches your Actual Budget container name and port.
 
 ### 4. Start the Service
 
 ```bash
-docker compose up -d --build
+$ docker compose up -d
 ```
 
 The service will start immediately and run conversions, then continue running daily at 00:00 UTC.
+
+## Development
+
+For local development, you can build the image locally by replacing the `image` directive with `build: .` in your docker-compose.yml and running:
+
+```bash
+$ docker compose up -d --build
+```

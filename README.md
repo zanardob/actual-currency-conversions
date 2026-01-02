@@ -20,6 +20,30 @@ A Docker-based service for automatic currency conversion in [Actual Budget](http
 Docker images are automatically built and published to GitHub Container Registry when version tags are pushed.
 The workflow triggers on tags matching `v*.*.*` (e.g., `v1.0.0`) and publishes images with semantic versioning tags.
 
+### Publishing a New Image Version
+
+To publish a new Docker image version, create and push a version tag to GitHub.
+
+**Via Command Line:**
+
+```bash
+# Create a version tag (use semantic versioning)
+$ git tag v1.0.0
+
+# Push the tag to GitHub
+$ git push origin v1.0.0
+```
+
+**Via GitHub Web Interface:**
+
+You can also create a new release directly from GitHub:
+1. Go to your repository on GitHub;
+2. Click on _Releases → Create a new release_;
+3. Click _Choose a tag_ and type a new tag name (e.g., `v1.0.0`);
+4. Click _Create new tag_ and publish the release.
+
+This will automatically trigger the GitHub Actions workflow to build and publish the image to `ghcr.io/zanardob/dual-actual` with the corresponding version tag.
+
 ## Setup
 
 ### 1. Configure Environment Variables

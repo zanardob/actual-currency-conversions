@@ -74,9 +74,7 @@ cron.schedule(
   () => {
     convert()
   },
-  {
-    timezone: "UTC",
-  },
+  { timezone: "UTC" },
 )
 
 console.log("Cron scheduler started: running daily at 00:00 UTC")

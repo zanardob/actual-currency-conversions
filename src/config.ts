@@ -16,17 +16,13 @@ export const ACTUAL_CONFIG: ActualConfig = {
   syncId: "5a94121f-a446-4349-a21a-53b9ce4199a0",
   convertAccounts: [
     {
-      id: "06919427-454b-4382-8d60-030245f77adf",
+      id: "e32e6708-a352-4c15-82f4-e39e7e8cb2f2",
       fromCurrency: "BRL",
     },
-    // {
-    //   id: "e32e6708-a352-4c15-82f4-e39e7e8cb2f2",
-    //   fromCurrency: "BRL",
-    // },
-    // {
-    //   id: "6f4aac1d-3983-4499-bf66-bbd70c2d95e4",
-    //   fromCurrency: "BRL",
-    // },
+    {
+      id: "6f4aac1d-3983-4499-bf66-bbd70c2d95e4",
+      fromCurrency: "BRL",
+    },
   ],
   toCurrency: "EUR",
 }

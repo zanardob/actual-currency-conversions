@@ -41,19 +41,22 @@ const convert = async () => {
       await exchange.fetchRates()
 
       for (let transaction of transactions) {
-        const { amount, rate } = exchange.applyRate(transaction.amount, transaction.date)
-        if (amount === undefined || rate === undefined) {
+        const { amount: convertedAmount, rate } = exchange.applyRate(transaction.amount, transaction.date)
+        if (convertedAmount === undefined || rate === undefined) {
           console.warn(`Skipping transaction ${JSON.stringify(transaction)} as no conversion rate was found.`)
           continue
         }
 
-        const originalAmount = (transaction.amount / 100).toFixed(2)
+        const formattedOriginalAmount = (transaction.amount / 100).toLocaleString("en-US", {
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        })
         const formattedRate = Number.parseFloat(rate.toFixed(6)).toString()
         const noteSuffix = transaction.notes ? ` • ${transaction.notes}` : ""
 
         await actualApi.updateTransaction(transaction.id, {
-          notes: `${originalAmount} ${account.fromCurrency} @ ${formattedRate}${noteSuffix}`,
-          amount: amount,
+          notes: `${formattedOriginalAmount} ${account.fromCurrency} @ ${formattedRate}${noteSuffix}`,
+          amount: convertedAmount,
         })
         convertedTransactionsCount++
       }

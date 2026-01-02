@@ -35,6 +35,7 @@ const createExchange = ({ fromCurrency, toCurrency }: ExchangeOptions): Exchange
     const endpoint =
       baseUrl +
       `symbol=${toCurrency}/${fromCurrency}&` +
+      `dp=6&` +
       `interval=1day&` +
       `start_date=${dateStart}&` +
       `end_date=${dateEnd}`

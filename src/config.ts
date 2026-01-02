@@ -1,6 +1,5 @@
 interface ConvertAccount {
   id: string;
-  name: string;
   fromCurrency: string;
 }
 
@@ -18,12 +17,10 @@ export const ACTUAL_CONFIG: ActualConfig = {
   convertAccounts: [
     {
       id: "<your-account-id>",
-      name: "Nubank",
       fromCurrency: "BRL",
     },
     {
       id: "<your-account-id>",
-      name: "XP",
       fromCurrency: "BRL",
     },
   ],

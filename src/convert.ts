@@ -35,7 +35,7 @@ const convert = async () => {
       );
       if (transactions.length === 0) {
         console.log(
-          `No transactions to convert for account ${account.name} (${account.fromCurrency} to ${ACTUAL_CONFIG.toCurrency}).`
+          `No transactions to convert for account ${account.id} (${account.fromCurrency} to ${ACTUAL_CONFIG.toCurrency}).`
         );
         continue;
       }

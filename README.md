@@ -42,7 +42,7 @@ You can also create a new release directly from GitHub:
 3. Click _Choose a tag_ and type a new tag name (e.g., `v1.0.0`);
 4. Click _Create new tag_ and publish the release.
 
-This will automatically trigger the GitHub Actions workflow to build and publish the image to `ghcr.io/zanardob/dual-actual` with the corresponding version tag.
+This will automatically trigger the GitHub Actions workflow to build and publish the image to `ghcr.io/zanardob/actual-currency-conversions` with the corresponding version tag.
 
 ## Setup
 

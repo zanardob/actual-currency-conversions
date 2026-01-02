@@ -1,4 +1,5 @@
 {
+  "name": "actual-currency-conversions",
   "type": "module",
   "scripts": {
     "type-check": "tsc --noEmit",

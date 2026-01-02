@@ -1,7 +1,7 @@
 services:
   actual-currency-conversions:
     # build: .  # If running locally
-    image: ghcr.io/zanardob/dual-actual:latest
+    image: ghcr.io/zanardob/actual-currency-conversions:v1.0.0
     container_name: "actual-currency-conversions"
     restart: "always"
     environment:

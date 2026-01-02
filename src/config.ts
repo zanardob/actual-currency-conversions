@@ -1,12 +1,12 @@
 interface ConvertAccount {
-  id: string;
-  fromCurrency: string;
+  id: string
+  fromCurrency: string
 }
 
 interface ActualConfig {
-  syncId: string;
-  convertAccounts: ConvertAccount[];
-  toCurrency: string;
+  syncId: string
+  convertAccounts: ConvertAccount[]
+  toCurrency: string
 }
 
 /**
@@ -25,9 +25,9 @@ export const ACTUAL_CONFIG: ActualConfig = {
     },
   ],
   toCurrency: "EUR",
-};
+}
 
 /**
  * How many days to look back for account activity.
  */
-export const LOOKBACK_DAYS = 365;
+export const LOOKBACK_DAYS = 365

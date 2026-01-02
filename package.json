@@ -2,9 +2,10 @@
   "name": "actual-currency-conversions",
   "type": "module",
   "scripts": {
-    "type-check": "tsc --noEmit",
     "list-accounts": "tsx src/listAccounts.ts",
-    "convert": "tsx src/convert.ts"
+    "convert": "tsx src/convert.ts",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@actual-app/api": "25.12.0",
@@ -15,6 +16,7 @@
   "devDependencies": {
     "@types/node": "^25.0.3",
     "@types/node-cron": "^3.0.11",
+    "prettier": "^3.7.4",
     "typescript": "^5.9.3"
   }
 }

@@ -1,21 +1,21 @@
-import dayjs from "dayjs";
-import { LOOKBACK_DAYS } from "./config";
+import dayjs from "dayjs"
+import { LOOKBACK_DAYS } from "./config"
 
 interface ExchangeOptions {
-  fromCurrency: string;
-  toCurrency: string;
+  fromCurrency: string
+  toCurrency: string
 }
 
 interface ConversionResult {
-  amount?: number;
-  rate?: number;
+  amount?: number
+  rate?: number
 }
 
 interface Exchange {
-  fromCurrency: string;
-  toCurrency: string;
-  fetchRates: () => Promise<void>;
-  applyRate: (amount: number, date: string) => ConversionResult;
+  fromCurrency: string
+  toCurrency: string
+  fetchRates: () => Promise<void>
+  applyRate: (amount: number, date: string) => ConversionResult
 }
 
 /**
@@ -23,21 +23,21 @@ interface Exchange {
  * Uses inverted rates because we're usually converting from a weaker currency to a stronger one.
  */
 const createExchange = ({ fromCurrency, toCurrency }: ExchangeOptions): Exchange => {
-  const dateStart = dayjs().subtract(LOOKBACK_DAYS, "days").format("YYYY-MM-DD");
-  const dateEnd = dayjs().format("YYYY-MM-DD");
-  let rates: Record<string, number> = {};
+  const dateStart = dayjs().subtract(LOOKBACK_DAYS, "days").format("YYYY-MM-DD")
+  const dateEnd = dayjs().format("YYYY-MM-DD")
+  let rates: Record<string, number> = {}
 
   /**
    * Fetches historical exchange rates from the Twelve Data API.
    */
   const fetchRates = async () => {
-    const baseUrl = "https://api.twelvedata.com/time_series?";
+    const baseUrl = "https://api.twelvedata.com/time_series?"
     const endpoint =
       baseUrl +
       `symbol=${toCurrency}/${fromCurrency}&` +
       `interval=1day&` +
       `start_date=${dateStart}&` +
-      `end_date=${dateEnd}`;
+      `end_date=${dateEnd}`
 
     const response = await fetch(endpoint, {
       method: "GET",
@@ -45,15 +45,15 @@ const createExchange = ({ fromCurrency, toCurrency }: ExchangeOptions): Exchange
         accept: "application/json",
         Authorization: `apikey ${process.env.TWELVE_DATA_API_KEY}`,
       },
-    });
+    })
 
-    const data = await response.json();
+    const data = await response.json()
     if (data.values) {
       for (let rate of data.values) {
-        rates[rate.datetime] = Number.parseFloat(rate.close);
+        rates[rate.datetime] = Number.parseFloat(rate.close)
       }
     } else {
-        console.error("No values returned from Twelve Data API", data);
+      console.error("No values returned from Twelve Data API", data)
     }
   }
 
@@ -64,18 +64,18 @@ const createExchange = ({ fromCurrency, toCurrency }: ExchangeOptions): Exchange
     if (date < dateStart || date > dateEnd) {
       console.warn(
         `Date ${date} is outside the range of fetched rates (${dateStart} to ${dateEnd}). ` +
-        `No conversion will be applied.`
-      );
-      return {};
+          `No conversion will be applied.`,
+      )
+      return {}
     }
 
-    let rate = rates[date];
+    let rate = rates[date]
     if (!rate) {
-      const dates = Object.keys(rates).sort((a, b) => a.localeCompare(b));
+      const dates = Object.keys(rates).sort((a, b) => a.localeCompare(b))
       for (let i = dates.length - 1; i >= 0; i--) {
         if (dates[i] < date) {
-          rate = rates[dates[i]];
-          break;
+          rate = rates[dates[i]]
+          break
         }
       }
       console.warn(
@@ -83,14 +83,14 @@ const createExchange = ({ fromCurrency, toCurrency }: ExchangeOptions): Exchange
           rate
             ? `falling back to previous rate ${rate}.`
             : "no previous rate found either. No conversion will be applied."
-        }`
-      );
+        }`,
+      )
     }
     if (!rate) {
-      return {};
+      return {}
     }
 
-    return { amount: Math.round(amount / rate), rate };
+    return { amount: Math.round(amount / rate), rate }
   }
 
   return {
@@ -98,7 +98,7 @@ const createExchange = ({ fromCurrency, toCurrency }: ExchangeOptions): Exchange
     toCurrency,
     fetchRates,
     applyRate,
-  };
+  }
 }
 
-export default createExchange;
+export default createExchange

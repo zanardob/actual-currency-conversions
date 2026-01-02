@@ -37,6 +37,7 @@ $ git push origin v1.0.0
 **Via GitHub Web Interface:**
 
 You can also create a new release directly from GitHub:
+
 1. Go to your repository on GitHub;
 2. Click on _Releases → Create a new release_;
 3. Click _Choose a tag_ and type a new tag name (e.g., `v1.0.0`);
@@ -75,7 +76,8 @@ $ docker exec -it actual-currency-conversions npm run list-accounts
 Add the service definition to your existing `docker-compose.yml` (alongside your Actual Budget service).
 The Actual Budget service should also use the same "proxy" network to allow communication between the two containers.
 
-**Note**: 
+**Note**:
+
 - The image is pulled from GitHub Container Registry.
 - Ensure the `ACTUAL_SERVER_URL` matches your Actual Budget container name and port.
 

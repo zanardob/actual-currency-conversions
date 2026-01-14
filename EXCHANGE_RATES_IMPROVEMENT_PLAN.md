@@ -3,7 +3,7 @@
 ## Current State Analysis
 
 ### How It Works Now
-1. **`convert.ts`** iterates over each account in `ACTUAL_CONFIG.convertAccounts`
+1. **`convertCurrencies.ts`** iterates over each account in `ACTUAL_CONFIG.convertAccounts`
 2. For each account, it creates a new `Exchange` instance via `createExchange()`
 3. Each `Exchange` instance calls `fetchRates()` which hits the Twelve Data API
 4. The API fetches rates for the last 365 days (`LOOKBACK_DAYS`)
@@ -36,7 +36,7 @@ Implement a two-tier caching strategy:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                        convert.ts                                │
+│                     convertCurrencies.ts                         │
 │                                                                  │
 │  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐       │
 │  │  Account 1   │    │  Account 2   │    │  Account N   │       │
@@ -67,7 +67,7 @@ Implement a two-tier caching strategy:
 
 ### Step 1: Create the File Cache Module
 
-**New file: `src/rateCache.ts`**
+**New file: `src/exchangeRateCache.ts`**
 
 This module will handle reading/writing rates to a JSON file.
 
@@ -82,12 +82,10 @@ This module will handle reading/writing rates to a JSON file.
 {
   "BRL/EUR": {
     "2025-01-01": 0.165432,
-    "2025-01-02": 0.164891,
-    ...
+    "2025-01-02": 0.164891
   },
   "USD/EUR": {
-    "2025-01-01": 0.923456,
-    ...
+    "2025-01-01": 0.923456
   }
 }
 ```
@@ -98,11 +96,13 @@ This module will handle reading/writing rates to a JSON file.
 - `getCachedRates(currencyPair: string): Record<string, number>` - Get rates for a pair
 - `setCachedRates(currencyPair: string, rates: Record<string, number>): void` - Store rates
 - `getUncachedDateRange(currencyPair: string, startDate: string, endDate: string): { start: string, end: string } | null` - Determine what needs fetching
+- `clearCache(): void` - Clear the cache file (backup if exists)
 
 #### Cache File Location:
 - Store in `./data/exchange-rates-cache.json`
+- **Define the path once in `config.ts`** and reference it everywhere
 - Create the `data` directory if it doesn't exist
-- Add `data/` to `.gitignore` (or make configurable via env var)
+- Add `data/` to `.gitignore`
 
 ---
 
@@ -147,7 +147,7 @@ This module will be the central point for getting exchange rates, managing both 
 
 ---
 
-### Step 3: Modify `exchangeRates.ts`
+### Step 3: Modify `exchangeRateConverter.ts`
 
 Update the existing module to use the new manager instead of directly calling the API.
 
@@ -158,58 +158,126 @@ Update the existing module to use the new manager instead of directly calling th
 
 ---
 
-### Step 4: Update `convert.ts`
+### Step 4: Update `convertCurrencies.ts`
 
 #### Changes:
+- Rename the `convert` function to `convertCurrencies`
+- Export the `convertCurrencies` function so it can be imported by `schedule.ts`
+- Remove the cron scheduling logic (moved to `schedule.ts`)
+- Remove the manual run check at the bottom (moved to `schedule.ts`)
 - Initialize the exchange rate manager at the start of the conversion job
 - Shutdown the manager at the end (to save cache)
-- The rest of the logic remains the same
 
 ```typescript
-// At start of convert()
+// At start of convertCurrencies()
 await initializeManager()
 
 // ... existing account loop ...
 
-// At end of convert()
+// At end of convertCurrencies()
 await shutdownManager()
 await actualApi.shutdown()
 ```
 
 ---
 
-### Step 5: Configuration Updates
+### Step 5: Create Schedule Module
+
+**New file: `src/schedule.ts`**
+
+This module will handle the cron scheduling, separating scheduling concerns from the conversion logic.
+
+#### Responsibilities:
+- Import and call `convertCurrencies` from `convertCurrencies.ts`
+- Configure and start the cron job (daily at 00:00 UTC)
+- Handle manual run when script is executed directly
+
+#### Structure:
+```typescript
+import cron from "node-cron"
+import { convertCurrencies } from "./convertCurrencies"
+
+// 00:00 UTC daily
+cron.schedule(
+  "0 0 * * *",
+  () => {
+    convertCurrencies()
+  },
+  { timezone: "UTC" },
+)
+
+console.log("Cron scheduler started: running daily at 00:00 UTC")
+
+// Allow manual run if script is executed directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  convertCurrencies()
+}
+```
+
+#### Update `package.json`:
+Change the `convert` script to run `schedule.ts` instead:
+```json
+"convert": "tsx src/schedule.ts"
+```
+
+---
+
+### Step 6: Configuration Updates
 
 **Update `src/config.ts`**
 
-Add new configuration options:
+Add cache configuration (path defined once, referenced everywhere):
 ```typescript
-export const CACHE_CONFIG = {
-  cacheFilePath: process.env.CACHE_FILE_PATH || './data/exchange-rates-cache.json',
-  historicalThresholdDays: 30, // Rates older than this are considered stable
+export const CACHE_FILE_PATH = './data/exchange-rates-cache.json'
+export const HISTORICAL_THRESHOLD_DAYS = 30  // Rates older than this are considered stable
+```
+
+---
+
+### Step 7: Add Clear Cache Command
+
+**New file: `src/clearCache.ts`**
+
+Create a command similar to `listAccounts.ts` to clear the cache.
+
+#### Behavior:
+- If cache file exists, back it up to `exchange-rates-cache.backup.json`
+- Delete the main cache file
+- Log success message
+
+#### Add to `package.json`:
+```json
+"scripts": {
+  "clear-cache": "tsx src/clearCache.ts"
 }
 ```
 
 ---
 
-## Clarifying Questions
+### Step 8: Docker Volume Configuration
 
-Before proceeding with implementation, I'd like to confirm a few things:
+**Update `docker-compose.yml`**
 
-1. **Cache File Location**: Is `./data/exchange-rates-cache.json` an acceptable location? Or would you prefer it configurable via environment variable?
+Add a volume mount for cache persistence:
+```yaml
+volumes:
+  - ./data:/app/data
+```
 
-2. **30-Day Threshold**: The issue mentions "older than 30 days" for persistent storage. Should this be configurable, or is 30 days a fixed requirement?
+This ensures the cache persists across container restarts.
 
-3. **Cache Invalidation**: Should there be a mechanism to manually clear/invalidate the cache? (e.g., a CLI command or deleting the file)
+---
 
-4. **Error Handling**: If the cache file is corrupted or unreadable, should we:
-   - Fail loudly and stop?
-   - Log a warning and start fresh?
-   - Backup the corrupted file and start fresh?
+## Design Decisions (Based on Clarifications)
 
-5. **Docker Considerations**: The project uses Docker. Should the cache file location be a mounted volume by default in `docker-compose.yml`?
-
-6. **Rate Precision**: The current code uses 6 decimal places (`dp=6`). Should cached rates maintain this precision?
+| Question | Decision |
+|----------|----------|
+| Cache file location | `./data/exchange-rates-cache.json` - defined once in `config.ts`, referenced everywhere |
+| 30-day threshold | Hardcoded to 30 days, not configurable |
+| Cache invalidation | Add `clear-cache` command (similar to `list-accounts`) |
+| Corrupted cache handling | Backup corrupted file and start fresh with API data, do not error out |
+| Docker support | Add volume mount in `docker-compose.yml` for persistence |
+| Rate precision | Always 6 decimal places |
 
 ---
 
@@ -233,8 +301,13 @@ Before proceeding with implementation, I'd like to confirm a few things:
 
 5. **Minimal Code Changes**:
    - Existing `applyRate()` logic unchanged
-   - `convert.ts` changes are minimal
+   - `convertCurrencies.ts` changes are minimal (rename function, export, remove cron)
+   - Cron scheduling isolated in `schedule.ts`
    - New functionality isolated in new modules
+
+6. **Docker-Ready**:
+   - Volume mount ensures cache persists across container restarts
+   - Works seamlessly in VPS deployment
 
 ---
 
@@ -242,11 +315,14 @@ Before proceeding with implementation, I'd like to confirm a few things:
 
 | File | Action | Description |
 |------|--------|-------------|
-| `src/rateCache.ts` | **CREATE** | File-based cache read/write operations |
+| `src/exchangeRateCache.ts` | **CREATE** | File-based cache read/write operations |
 | `src/exchangeRateManager.ts` | **CREATE** | Central rate management with session cache |
-| `src/exchangeRates.ts` | **MODIFY** | Use manager instead of direct API calls |
-| `src/convert.ts` | **MODIFY** | Initialize/shutdown manager |
-| `src/config.ts` | **MODIFY** | Add cache configuration options |
+| `src/exchangeRateConverter.ts` | **MODIFY** | Use manager instead of direct API calls |
+| `src/convertCurrencies.ts` | **MODIFY** | Rename `convert` function to `convertCurrencies`, export it, remove cron logic, initialize/shutdown manager |
+| `src/schedule.ts` | **CREATE** | Cron scheduling configuration, imports and calls `convertCurrencies` |
+| `src/config.ts` | **MODIFY** | Add cache configuration (path defined once) |
+| `src/clearCache.ts` | **CREATE** | Command to clear the cache |
+| `package.json` | **MODIFY** | Add `clear-cache` script, update `convert` script to run `schedule.ts` |
 | `data/` | **CREATE** | Directory for cache file |
 | `.gitignore` | **MODIFY** | Add `data/` directory |
 | `docker-compose.yml` | **MODIFY** | Add volume mount for cache persistence |
@@ -255,4 +331,4 @@ Before proceeding with implementation, I'd like to confirm a few things:
 
 ## Next Steps
 
-Once you've reviewed this plan and answered the clarifying questions, I'll proceed with the implementation. Let me know if you'd like any changes to the approach!
+Ready to proceed with implementation!

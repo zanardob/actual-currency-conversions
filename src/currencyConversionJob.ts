@@ -1,7 +1,7 @@
 import actualApi from "@actual-app/api"
 import cron from "node-cron"
 import dayjs from "dayjs"
-import createExchange from "./exchangeRates"
+import createExchange from "./exchangeRateConverter"
 import { ACTUAL_CONFIG, LOOKBACK_DAYS } from "./config"
 
 /**

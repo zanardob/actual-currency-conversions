@@ -3,7 +3,7 @@
   "type": "module",
   "scripts": {
     "list-accounts": "tsx src/listAccounts.ts",
-    "convert": "tsx src/convert.ts",
+    "convert": "tsx src/currencyConversionJob.ts",
     "type-check": "tsc --noEmit",
     "format": "prettier --write ."
   },

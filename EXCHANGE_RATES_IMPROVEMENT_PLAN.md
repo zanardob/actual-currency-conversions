@@ -329,6 +329,81 @@ This ensures the cache persists across container restarts.
 
 ---
 
+## Implementation Checklist
+
+### Step 1: Create File Cache Module (`src/exchangeRateCache.ts`) ✓
+- [x] Create the new file with cache read/write operations ✓
+- [x] Implement loadCache, saveCache, getCachedRates, setCachedRates functions ✓
+- [x] Implement getUncachedDateRange and clearCache functions ✓
+- [x] Handle corrupted cache (backup and start fresh) ✓
+- [x] Apply feedback: strict union types for currency pairs (`CurrencyPair`) ✓
+- [x] Apply feedback: `DateString` type for YYYY-MM-DD format ✓
+- [x] Apply feedback: backup to `.json.bak` extension ✓
+- [x] Apply feedback: restore `startDate` parameter to `getUncachedDateRange` ✓
+- [x] Apply feedback: use template literals instead of concatenation ✓
+- [x] Apply feedback: factory pattern for cache state (avoid global mutable variable) ✓
+- **✅ COMPLETE**
+
+#### Learnings from Step 1:
+- Use strict union types (e.g., `CurrencyPair`, `DateString`) to narrow types and improve type safety
+- Prefer factory pattern over global mutable variables for encapsulated state
+- Always use template literals for string interpolation
+- Backup files should use `.json.bak` extension
+
+### Step 2: Create Exchange Rate Manager (`src/exchangeRateManager.ts`)
+- [ ] Create the new file with session cache management
+- [ ] Implement initializeManager, getRates, shutdownManager functions
+- [ ] Coordinate between file cache and API calls
+- **⏸️ STOP FOR REVIEW**
+
+### Step 3: Modify `exchangeRateConverter.ts`
+- [ ] Remove direct API call logic (move to manager)
+- [ ] Update fetchRates() to call exchangeRateManager.getRates()
+- [ ] Keep applyRate() logic as-is
+- **⏸️ STOP FOR REVIEW**
+
+### Step 4: Update `currencyConversionJob.ts` → `convertCurrencies.ts`
+- [ ] Rename file
+- [ ] Rename `convert` function to `convertCurrencies`
+- [ ] Export the function
+- [ ] Remove cron scheduling logic
+- [ ] Add manager initialization/shutdown
+- **⏸️ STOP FOR REVIEW**
+
+### Step 5: Create Schedule Module (`src/schedule.ts`)
+- [ ] Create new file with cron configuration
+- [ ] Import and call convertCurrencies
+- [ ] Handle manual run check
+- **⏸️ STOP FOR REVIEW**
+
+### Step 6: Configuration Updates (`src/config.ts`)
+- [ ] Add CACHE_FILE_PATH constant
+- [ ] Add HISTORICAL_THRESHOLD_DAYS constant
+- **⏸️ STOP FOR REVIEW**
+
+### Step 7: Add Clear Cache Command (`src/clearCache.ts`)
+- [ ] Create new file
+- [ ] Implement backup and delete logic
+- **⏸️ STOP FOR REVIEW**
+
+### Step 8: Update `package.json`
+- [ ] Add `clear-cache` script
+- [ ] Update `convert` script to run `schedule.ts`
+- **⏸️ STOP FOR REVIEW**
+
+### Step 9: Docker & Git Configuration
+- [ ] Create `data/` directory
+- [ ] Update `.gitignore` to add `data/`
+- [ ] Update `docker-compose.yml` with volume mount
+- **⏸️ STOP FOR REVIEW**
+
+### Step 10: Final Testing & Verification
+- [ ] Run type-check
+- [ ] Test manual conversion run
+- **⏸️ STOP FOR REVIEW**
+
+---
+
 ## Next Steps
 
 Ready to proceed with implementation!

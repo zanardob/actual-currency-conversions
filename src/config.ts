@@ -28,3 +28,8 @@ export const LOOKBACK_DAYS = 365
  * and will be persisted to the file cache.
  */
 export const HISTORICAL_THRESHOLD_DAYS = 30
+
+/**
+ * Path to the exchange rates cache file.
+ */
+export const CACHE_FILE_PATH = "./data/exchange-rates-cache.json"

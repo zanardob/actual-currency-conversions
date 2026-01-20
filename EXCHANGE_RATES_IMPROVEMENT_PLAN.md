@@ -278,6 +278,8 @@ This ensures the cache persists across container restarts.
 | Corrupted cache handling | Backup corrupted file and start fresh with API data, do not error out |
 | Docker support | Add volume mount in `docker-compose.yml` for persistence |
 | Rate precision | Always 6 decimal places |
+| Currency pair format | `TO/FROM` format (e.g., `EUR/BRL`) to match Twelve Data API convention |
+| API error handling | Wrap fetch in try/catch, check response.ok, return empty rates on failure |
 
 ---
 
@@ -350,10 +352,15 @@ This ensures the cache persists across container restarts.
 - Always use template literals for string interpolation
 - Backup files should use `.json.bak` extension
 
+#### Fixes from Step 2 Review:
+- Fixed `getUncachedDateRange` to return `null` when fully cached (was incorrectly returning full range)
+- Fixed currency pair direction to use `TO/FROM` format (e.g., `EUR/BRL`) to match original converter
+
 ### Step 2: Create Exchange Rate Manager (`src/exchangeRateManager.ts`)
-- [ ] Create the new file with session cache management
-- [ ] Implement initializeManager, getRates, shutdownManager functions
-- [ ] Coordinate between file cache and API calls
+- [x] Create the new file with session cache management
+- [x] Implement initializeManager, getRates, shutdownManager functions
+- [x] Coordinate between file cache and API calls
+- [x] Add error handling for API fetch (try/catch, check response.ok)
 - **⏸️ STOP FOR REVIEW**
 
 ### Step 3: Modify `exchangeRateConverter.ts`

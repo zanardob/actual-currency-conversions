@@ -1,13 +1,4 @@
-interface ConvertAccount {
-  id: string
-  fromCurrency: string
-}
-
-interface ActualConfig {
-  syncId: string
-  convertAccounts: ConvertAccount[]
-  toCurrency: string
-}
+import { ActualConfig } from "./types"
 
 /**
  * Configuration settings for the conversions.
@@ -31,3 +22,9 @@ export const ACTUAL_CONFIG: ActualConfig = {
  * How many days to look back for account activity.
  */
 export const LOOKBACK_DAYS = 365
+
+/**
+ * Historical threshold in days. Rates older than this are considered stable
+ * and will be persisted to the file cache.
+ */
+export const HISTORICAL_THRESHOLD_DAYS = 30

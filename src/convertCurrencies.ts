@@ -1,14 +1,16 @@
 import actualApi from "@actual-app/api"
-import cron from "node-cron"
 import dayjs from "dayjs"
 import createExchange from "./exchangeRateConverter"
 import { ACTUAL_CONFIG, LOOKBACK_DAYS } from "./config"
+import { initializeManager, shutdownManager } from "./exchangeRateManager"
 
 /**
  * Converts transactions in configured accounts from their source currency to the target currency.
  */
-const convert = async () => {
+export const convertCurrencies = async () => {
   console.log("Starting conversion job...")
+
+  initializeManager()
 
   await actualApi.init({
     dataDir: "./actual-cache",
@@ -67,22 +69,7 @@ const convert = async () => {
     }
   }
 
+  shutdownManager()
   await actualApi.shutdown()
   console.log("Conversion job finished.")
-}
-
-// 00:00 UTC daily
-cron.schedule(
-  "0 0 * * *",
-  () => {
-    convert()
-  },
-  { timezone: "UTC" },
-)
-
-console.log("Cron scheduler started: running daily at 00:00 UTC")
-
-// Allow manual run if script is executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  convert()
 }

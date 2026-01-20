@@ -1,5 +1,6 @@
 import dayjs from "dayjs"
 import { LOOKBACK_DAYS } from "./config"
+import { getRates } from "./exchangeRateManager"
 
 interface ExchangeOptions {
   fromCurrency: string
@@ -28,34 +29,11 @@ const createExchange = ({ fromCurrency, toCurrency }: ExchangeOptions): Exchange
   let rates: Record<string, number> = {}
 
   /**
-   * Fetches historical exchange rates from the Twelve Data API.
+   * Fetches historical exchange rates via the exchange rate manager.
+   * The manager handles caching and API calls.
    */
   const fetchRates = async () => {
-    const baseUrl = "https://api.twelvedata.com/time_series?"
-    const endpoint =
-      baseUrl +
-      `symbol=${toCurrency}/${fromCurrency}&` +
-      `dp=6&` +
-      `interval=1day&` +
-      `start_date=${dateStart}&` +
-      `end_date=${dateEnd}`
-
-    const response = await fetch(endpoint, {
-      method: "GET",
-      headers: {
-        accept: "application/json",
-        Authorization: `apikey ${process.env.TWELVE_DATA_API_KEY}`,
-      },
-    })
-
-    const data = await response.json()
-    if (data.values) {
-      for (let rate of data.values) {
-        rates[rate.datetime] = Number.parseFloat(rate.close)
-      }
-    } else {
-      console.error("No values returned from Twelve Data API", data)
-    }
+    rates = await getRates(fromCurrency, toCurrency)
   }
 
   /**

@@ -3,7 +3,9 @@
   "type": "module",
   "scripts": {
     "list-accounts": "tsx src/listAccounts.ts",
-    "convert": "tsx src/currencyConversionJob.ts",
+    "convert": "tsx src/convertCurrencies.ts",
+    "schedule": "tsx src/schedule.ts",
+    "clear-cache": "tsx src/clearCache.ts",
     "type-check": "tsc --noEmit",
     "format": "prettier --write ."
   },

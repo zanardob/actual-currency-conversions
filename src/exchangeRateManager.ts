@@ -1,19 +1,22 @@
 import dayjs from "dayjs"
-import { createFileCacheStore } from "./exchangeRateFileCache"
-import { createSessionCacheStore } from "./exchangeRateSessionCache"
+import {
+  loadFileCache,
+  saveFileCache,
+  getFileCacheRates,
+  setFileCacheRates,
+  getFileCacheUncachedDateRange,
+} from "./exchangeRateFileCache"
+import { hasSessionCache, getSessionCache, setSessionCache, clearSessionCache } from "./exchangeRateSessionCache"
 import { LOOKBACK_DAYS, HISTORICAL_THRESHOLD_DAYS } from "./config"
 import { type CurrencyPair, type DateString } from "./types"
-
-const sessionCacheStore = createSessionCacheStore()
-const fileCacheStore = createFileCacheStore()
 
 /**
  * Initializes the exchange rate manager by loading the file cache.
  * Should be called at the start of a conversion job.
  */
 export const initializeManager = (): void => {
-  fileCacheStore.load()
-  sessionCacheStore.clear()
+  loadFileCache()
+  clearSessionCache()
   console.log("Exchange rate manager initialized.")
 }
 
@@ -22,8 +25,8 @@ export const initializeManager = (): void => {
  * Should be called at the end of a conversion job.
  */
 export const shutdownManager = (): void => {
-  fileCacheStore.save()
-  sessionCacheStore.clear()
+  saveFileCache()
+  clearSessionCache()
   console.log("Exchange rate manager shut down.")
 }
 
@@ -117,13 +120,13 @@ export const getRates = async (fromCurrency: string, toCurrency: string): Promis
   const currencyPair = `${toCurrency}/${fromCurrency}` as CurrencyPair
 
   // 1. Check session cache first
-  if (sessionCacheStore.has(currencyPair)) {
+  if (hasSessionCache(currencyPair)) {
     console.log(`Using session cache for ${currencyPair}.`)
-    return sessionCacheStore.get(currencyPair)!
+    return getSessionCache(currencyPair)!
   }
 
   // 2. Get cached rates from file
-  const cachedRates = fileCacheStore.getRates(currencyPair)
+  const cachedRates = getFileCacheRates(currencyPair)
   const cachedCount = Object.keys(cachedRates).length
   if (cachedCount > 0) {
     console.log(`Found ${cachedCount} cached rates for ${currencyPair}.`)
@@ -134,7 +137,7 @@ export const getRates = async (fromCurrency: string, toCurrency: string): Promis
   const endDate = dayjs().format("YYYY-MM-DD") as DateString
 
   // 4. Find uncached date range
-  const uncachedRange = fileCacheStore.getUncachedDateRange(currencyPair, startDate, endDate)
+  const uncachedRange = getFileCacheUncachedDateRange(currencyPair, startDate, endDate)
 
   // 5. Fetch missing rates from API
   let fetchedRates: Record<DateString, number> = {} as Record<DateString, number>
@@ -144,7 +147,7 @@ export const getRates = async (fromCurrency: string, toCurrency: string): Promis
     // 6. Update file cache with historical rates only
     const historicalRates = filterHistoricalRates(fetchedRates)
     if (Object.keys(historicalRates).length > 0) {
-      fileCacheStore.setRates(currencyPair, historicalRates)
+      setFileCacheRates(currencyPair, historicalRates)
       console.log(`Cached ${Object.keys(historicalRates).length} historical rates for ${currencyPair}.`)
     }
   }
@@ -156,7 +159,7 @@ export const getRates = async (fromCurrency: string, toCurrency: string): Promis
   }
 
   // 8. Store in session cache
-  sessionCacheStore.set(currencyPair, allRates)
+  setSessionCache(currencyPair, allRates)
 
   return allRates
 }

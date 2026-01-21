@@ -73,3 +73,5 @@ export const convertCurrencies = async () => {
   await actualApi.shutdown()
   console.log("Conversion job finished.")
 }
+
+convertCurrencies()

@@ -6,7 +6,7 @@ import {
   setFileCacheRates,
   getFileCacheUncachedDateRange,
 } from "./exchangeRateFileCache"
-import { hasSessionCache, getSessionCache, setSessionCache, clearSessionCache } from "./exchangeRateSessionCache"
+import { getSessionCache, setSessionCache, clearSessionCache } from "./exchangeRateSessionCache"
 import { LOOKBACK_DAYS, HISTORICAL_THRESHOLD_DAYS } from "./config"
 import { type CurrencyPair, type DateString } from "./types"
 
@@ -92,9 +92,10 @@ export const getRates = async (fromCurrency: string, toCurrency: string): Promis
   const currencyPair = `${toCurrency}/${fromCurrency}` as CurrencyPair
 
   // 1. Check session cache first
-  if (hasSessionCache(currencyPair)) {
+  const cached = getSessionCache(currencyPair)
+  if (cached) {
     console.log(`Using session cache for ${currencyPair}.`)
-    return getSessionCache(currencyPair)!
+    return cached
   }
 
   // 2. Get cached rates from file

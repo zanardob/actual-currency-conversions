@@ -1,21 +1,10 @@
 import { describe, it, expect, beforeEach } from "vitest"
-import { hasSessionCache, getSessionCache, setSessionCache, clearSessionCache } from "./exchangeRateSessionCache"
-import { type DateString, type CurrencyPair } from "./types"
+import { getSessionCache, setSessionCache, clearSessionCache } from "./exchangeRateSessionCache"
+import { type DateString } from "./types"
 
 describe("exchangeRateSessionCache", () => {
   beforeEach(() => {
     clearSessionCache()
-  })
-
-  describe("hasSessionCache", () => {
-    it("returns false for uncached currency pair", () => {
-      expect(hasSessionCache("EUR/BRL")).toBe(false)
-    })
-
-    it("returns true for cached currency pair", () => {
-      setSessionCache("EUR/BRL", { "2024-01-01": 5.5 } as Record<DateString, number>)
-      expect(hasSessionCache("EUR/BRL")).toBe(true)
-    })
   })
 
   describe("getSessionCache", () => {
@@ -49,8 +38,8 @@ describe("exchangeRateSessionCache", () => {
       setSessionCache("EUR/BRL", { "2024-01-01": 5.5 } as Record<DateString, number>)
       setSessionCache("BRL/EUR", { "2024-01-01": 0.19 } as Record<DateString, number>)
       clearSessionCache()
-      expect(hasSessionCache("EUR/BRL")).toBe(false)
-      expect(hasSessionCache("BRL/EUR")).toBe(false)
+      expect(getSessionCache("EUR/BRL")).toBeUndefined()
+      expect(getSessionCache("BRL/EUR")).toBeUndefined()
     })
   })
 })

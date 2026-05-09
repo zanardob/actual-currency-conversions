@@ -56,7 +56,6 @@ describe("exchangeRateManager", () => {
   describe("getRates", () => {
     it("returns from session cache if available", async () => {
       const mockRates = { "2024-01-01": 5.5 } as Record<DateString, number>
-      vi.mocked(sessionCache.hasSessionCache).mockReturnValue(true)
       vi.mocked(sessionCache.getSessionCache).mockReturnValue(mockRates)
 
       const rates = await getRates("BRL", "EUR")
@@ -67,7 +66,6 @@ describe("exchangeRateManager", () => {
     })
 
     it("fetches from API when cache is empty", async () => {
-      vi.mocked(sessionCache.hasSessionCache).mockReturnValue(false)
       vi.mocked(fileCache.getFileCacheRates).mockReturnValue({})
       vi.mocked(fileCache.getFileCacheUncachedDateRange).mockReturnValue({
         start: "2024-01-01" as DateString,
@@ -95,7 +93,6 @@ describe("exchangeRateManager", () => {
     })
 
     it("handles API errors gracefully", async () => {
-      vi.mocked(sessionCache.hasSessionCache).mockReturnValue(false)
       vi.mocked(fileCache.getFileCacheRates).mockReturnValue({})
       vi.mocked(fileCache.getFileCacheUncachedDateRange).mockReturnValue({
         start: "2024-01-01" as DateString,
@@ -114,7 +111,6 @@ describe("exchangeRateManager", () => {
 
     it("merges cached and fetched rates", async () => {
       const cachedRates = { "2024-01-01": 5.5 } as Record<DateString, number>
-      vi.mocked(sessionCache.hasSessionCache).mockReturnValue(false)
       vi.mocked(fileCache.getFileCacheRates).mockReturnValue(cachedRates)
       vi.mocked(fileCache.getFileCacheUncachedDateRange).mockReturnValue({
         start: "2024-01-02" as DateString,
@@ -139,7 +135,6 @@ describe("exchangeRateManager", () => {
 
     it("skips API call when fully cached", async () => {
       const cachedRates = { "2024-01-01": 5.5 } as Record<DateString, number>
-      vi.mocked(sessionCache.hasSessionCache).mockReturnValue(false)
       vi.mocked(fileCache.getFileCacheRates).mockReturnValue(cachedRates)
       vi.mocked(fileCache.getFileCacheUncachedDateRange).mockReturnValue(null)
 
@@ -150,7 +145,6 @@ describe("exchangeRateManager", () => {
     })
 
     it("stores rates in session cache after fetch", async () => {
-      vi.mocked(sessionCache.hasSessionCache).mockReturnValue(false)
       vi.mocked(fileCache.getFileCacheRates).mockReturnValue({})
       vi.mocked(fileCache.getFileCacheUncachedDateRange).mockReturnValue({
         start: "2024-01-01" as DateString,
@@ -167,7 +161,10 @@ describe("exchangeRateManager", () => {
 
       await getRates("BRL", "EUR")
 
-      expect(sessionCache.setSessionCache).toHaveBeenCalledWith("EUR/BRL", expect.objectContaining({ "2024-01-01": 5.5 }))
+      expect(sessionCache.setSessionCache).toHaveBeenCalledWith(
+        "EUR/BRL",
+        expect.objectContaining({ "2024-01-01": 5.5 }),
+      )
     })
   })
 })

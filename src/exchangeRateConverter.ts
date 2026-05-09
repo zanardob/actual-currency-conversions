@@ -27,9 +27,11 @@ const createExchange = ({ fromCurrency, toCurrency }: ExchangeOptions): Exchange
   const dateStart = dayjs().subtract(LOOKBACK_DAYS, "days").format("YYYY-MM-DD")
   const dateEnd = dayjs().format("YYYY-MM-DD")
   let rates: Record<string, number> = {}
+  let sortedDates: string[] = []
 
   const fetchRates = async () => {
     rates = await getRates(fromCurrency, toCurrency)
+    sortedDates = Object.keys(rates).sort()
   }
 
   const applyRate = (amount: number, date: string): ConversionResult => {
@@ -43,10 +45,9 @@ const createExchange = ({ fromCurrency, toCurrency }: ExchangeOptions): Exchange
 
     let rate = rates[date]
     if (!rate) {
-      const dates = Object.keys(rates).sort((a, b) => a.localeCompare(b))
-      for (let i = dates.length - 1; i >= 0; i--) {
-        if (dates[i] < date && dates[i] >= dateStart) {
-          rate = rates[dates[i]]
+      for (let i = sortedDates.length - 1; i >= 0; i--) {
+        if (sortedDates[i] < date && sortedDates[i] >= dateStart) {
+          rate = rates[sortedDates[i]]
           break
         }
       }

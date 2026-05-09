@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest"
-import { type DateString } from "./types"
+import { type DateString } from "../types"
 
-vi.mock("./exchangeRateManager")
+vi.mock("../exchangeRateManager")
 
 describe("exchangeRateConverter", () => {
-  let createExchange: typeof import("./exchangeRateConverter").default
-  let manager: typeof import("./exchangeRateManager")
+  let createExchange: typeof import("../exchangeRateConverter").default
+  let manager: typeof import("../exchangeRateManager")
 
   beforeEach(async () => {
     vi.clearAllMocks()
@@ -14,8 +14,8 @@ describe("exchangeRateConverter", () => {
     vi.useFakeTimers()
     vi.setSystemTime(new Date("2024-06-15"))
 
-    manager = await import("./exchangeRateManager")
-    const module = await import("./exchangeRateConverter")
+    manager = await import("../exchangeRateManager")
+    const module = await import("../exchangeRateConverter")
     createExchange = module.default
   })
 

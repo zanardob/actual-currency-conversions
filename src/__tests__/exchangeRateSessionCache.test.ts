@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest"
-import { getSessionCache, setSessionCache, clearSessionCache } from "./exchangeRateSessionCache"
-import { type DateString } from "./types"
+import { getSessionCache, setSessionCache, clearSessionCache } from "../exchangeRateSessionCache"
+import { type DateString } from "../types"
 
 describe("exchangeRateSessionCache", () => {
   beforeEach(() => {

@@ -1,22 +1,22 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest"
 import fs from "node:fs"
-import { type DateString } from "./types"
+import { type DateString } from "../types"
 
 vi.mock("node:fs")
 
 // Dynamically import the module after mocking to get fresh state
-let loadFileCache: typeof import("./exchangeRateFileCache").loadFileCache
-let saveFileCache: typeof import("./exchangeRateFileCache").saveFileCache
-let getFileCacheRates: typeof import("./exchangeRateFileCache").getFileCacheRates
-let setFileCacheRates: typeof import("./exchangeRateFileCache").setFileCacheRates
-let getFileCacheUncachedDateRange: typeof import("./exchangeRateFileCache").getFileCacheUncachedDateRange
-let clearFileCache: typeof import("./exchangeRateFileCache").clearFileCache
+let loadFileCache: typeof import("../exchangeRateFileCache").loadFileCache
+let saveFileCache: typeof import("../exchangeRateFileCache").saveFileCache
+let getFileCacheRates: typeof import("../exchangeRateFileCache").getFileCacheRates
+let setFileCacheRates: typeof import("../exchangeRateFileCache").setFileCacheRates
+let getFileCacheUncachedDateRange: typeof import("../exchangeRateFileCache").getFileCacheUncachedDateRange
+let clearFileCache: typeof import("../exchangeRateFileCache").clearFileCache
 
 describe("exchangeRateFileCache", () => {
   beforeEach(async () => {
     vi.clearAllMocks()
     vi.resetModules()
-    const module = await import("./exchangeRateFileCache")
+    const module = await import("../exchangeRateFileCache")
     loadFileCache = module.loadFileCache
     saveFileCache = module.saveFileCache
     getFileCacheRates = module.getFileCacheRates

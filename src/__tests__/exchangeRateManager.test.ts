@@ -1,18 +1,18 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest"
-import { type DateString } from "./types"
+import { type DateString } from "../types"
 
-vi.mock("./exchangeRateFileCache")
-vi.mock("./exchangeRateSessionCache")
+vi.mock("../exchangeRateFileCache")
+vi.mock("../exchangeRateSessionCache")
 
 const mockFetch = vi.fn()
 global.fetch = mockFetch
 
 describe("exchangeRateManager", () => {
-  let initializeManager: typeof import("./exchangeRateManager").initializeManager
-  let shutdownManager: typeof import("./exchangeRateManager").shutdownManager
-  let getRates: typeof import("./exchangeRateManager").getRates
-  let fileCache: typeof import("./exchangeRateFileCache")
-  let sessionCache: typeof import("./exchangeRateSessionCache")
+  let initializeManager: typeof import("../exchangeRateManager").initializeManager
+  let shutdownManager: typeof import("../exchangeRateManager").shutdownManager
+  let getRates: typeof import("../exchangeRateManager").getRates
+  let fileCache: typeof import("../exchangeRateFileCache")
+  let sessionCache: typeof import("../exchangeRateSessionCache")
 
   beforeEach(async () => {
     vi.clearAllMocks()
@@ -20,9 +20,9 @@ describe("exchangeRateManager", () => {
 
     process.env.TWELVE_DATA_API_KEY = "test-api-key"
 
-    fileCache = await import("./exchangeRateFileCache")
-    sessionCache = await import("./exchangeRateSessionCache")
-    const manager = await import("./exchangeRateManager")
+    fileCache = await import("../exchangeRateFileCache")
+    sessionCache = await import("../exchangeRateSessionCache")
+    const manager = await import("../exchangeRateManager")
     initializeManager = manager.initializeManager
     shutdownManager = manager.shutdownManager
     getRates = manager.getRates

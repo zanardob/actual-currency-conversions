@@ -31,16 +31,19 @@ const backupCorruptedCache = (): void => {
   }
 }
 
-/**
- * Loads the file cache from the JSON file.
- * If the file doesn't exist or is corrupted, starts with empty cache.
- * Corrupted files are backed up before starting fresh.
- */
+const isValidCacheShape = (value: unknown): value is Partial<RatesCache> => {
+  return typeof value === "object" && value !== null && !Array.isArray(value)
+}
+
 export const loadFileCache = (): void => {
   try {
     if (fs.existsSync(CACHE_FILE_PATH)) {
       const data = fs.readFileSync(CACHE_FILE_PATH, "utf-8")
-      cache = JSON.parse(data)
+      const parsed = JSON.parse(data)
+      if (!isValidCacheShape(parsed)) {
+        throw new Error("Cache file has invalid shape")
+      }
+      cache = parsed
       console.log("Exchange rate cache loaded successfully.")
     } else {
       cache = {}

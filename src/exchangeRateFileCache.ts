@@ -85,7 +85,7 @@ export const getFileCacheRates = (currencyPair: CurrencyPair): Record<DateString
  * @param rates - Record of date -> rate
  */
 export const setFileCacheRates = (currencyPair: CurrencyPair, rates: Record<DateString, number>): void => {
-  const formattedRates: Record<DateString, number> = {} as Record<DateString, number>
+  const formattedRates: Record<DateString, number> = {}
   for (const [date, rate] of Object.entries(rates)) {
     formattedRates[date as DateString] = Number(rate.toFixed(6))
   }

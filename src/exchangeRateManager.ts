@@ -67,7 +67,7 @@ const fetchRatesFromApi = async (
     }
 
     const data = await response.json()
-    const rates: Record<DateString, number> = {} as Record<DateString, number>
+    const rates: Record<DateString, number> = {}
 
     if (data.values) {
       for (const rate of data.values) {
@@ -81,7 +81,7 @@ const fetchRatesFromApi = async (
     return rates
   } catch (error) {
     console.error(`Failed to fetch rates for ${currencyPair}:`, error)
-    return {} as Record<DateString, number>
+    return {}
   }
 }
 
@@ -93,7 +93,7 @@ const fetchRatesFromApi = async (
  */
 const filterHistoricalRates = (rates: Record<DateString, number>): Record<DateString, number> => {
   const thresholdDate = dayjs().subtract(HISTORICAL_THRESHOLD_DAYS, "days").format("YYYY-MM-DD")
-  const historicalRates: Record<DateString, number> = {} as Record<DateString, number>
+  const historicalRates: Record<DateString, number> = {}
 
   for (const [date, rate] of Object.entries(rates)) {
     if (date < thresholdDate) {
@@ -140,7 +140,7 @@ export const getRates = async (fromCurrency: string, toCurrency: string): Promis
   const uncachedRange = getFileCacheUncachedDateRange(currencyPair, startDate, endDate)
 
   // 5. Fetch missing rates from API
-  let fetchedRates: Record<DateString, number> = {} as Record<DateString, number>
+  let fetchedRates: Record<DateString, number> = {}
   if (uncachedRange) {
     fetchedRates = await fetchRatesFromApi(currencyPair, uncachedRange.start, uncachedRange.end)
 

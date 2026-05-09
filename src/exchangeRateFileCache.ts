@@ -13,15 +13,15 @@ const ensureDataDirectory = (): void => {
   }
 }
 
-const backupCorruptedCache = (): void => {
+const backupCacheFile = (reason: string): void => {
   try {
     if (fs.existsSync(CACHE_FILE_PATH)) {
       const backupPath = `${CACHE_FILE_PATH}.bak`
       fs.renameSync(CACHE_FILE_PATH, backupPath)
-      console.log(`Corrupted cache backed up to: ${backupPath}`)
+      console.log(`Cache backed up to ${backupPath} (${reason}).`)
     }
   } catch (error) {
-    console.error("Failed to backup corrupted cache:", error)
+    console.error("Failed to back up cache:", error)
   }
 }
 
@@ -43,9 +43,9 @@ export const loadFileCache = (): void => {
       cache = {}
       console.log("No existing cache file found. Starting with empty cache.")
     }
-  } catch (error) {
+  } catch {
     console.warn("Cache file is corrupted. Backing up and starting fresh.")
-    backupCorruptedCache()
+    backupCacheFile("corrupted")
     cache = {}
   }
 }
@@ -106,16 +106,10 @@ export const getFileCacheUncachedDateRange = (
 }
 
 export const clearFileCache = (): void => {
-  try {
-    if (fs.existsSync(CACHE_FILE_PATH)) {
-      const backupPath = `${CACHE_FILE_PATH}.bak`
-      fs.renameSync(CACHE_FILE_PATH, backupPath)
-      console.log(`Cache cleared. Backup saved to: ${backupPath}`)
-    } else {
-      console.log("No cache file to clear.")
-    }
-    cache = {}
-  } catch (error) {
-    console.error("Failed to clear cache:", error)
+  if (fs.existsSync(CACHE_FILE_PATH)) {
+    backupCacheFile("manual clear")
+  } else {
+    console.log("No cache file to clear.")
   }
+  cache = {}
 }

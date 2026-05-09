@@ -4,7 +4,7 @@ WORKDIR /app
 
 COPY package*.json ./
 RUN mkdir -p ./actual-cache && \
-    npm ci
+    npm ci --omit=dev
 
 COPY . .
 

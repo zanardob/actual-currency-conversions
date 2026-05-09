@@ -31,5 +31,6 @@ export const HISTORICAL_THRESHOLD_DAYS = 30
 
 /**
  * Path to the exchange rates cache file.
+ * Uses actual-cache directory which is volume-mounted in Docker.
  */
-export const CACHE_FILE_PATH = "./data/exchange-rates-cache.json"
+export const CACHE_FILE_PATH = "./actual-cache/exchange-rates-cache.json"

@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url"
 import actualApi from "@actual-app/api"
 import dayjs from "dayjs"
 import createExchange from "./exchangeRateConverter"
@@ -74,4 +75,6 @@ export const convertCurrencies = async () => {
   console.log("Conversion job finished.")
 }
 
-convertCurrencies()
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  convertCurrencies()
+}

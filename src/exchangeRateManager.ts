@@ -91,33 +91,26 @@ export const getRates = async (fromCurrency: string, toCurrency: string): Promis
   // Currency pair format is TO/FROM to match Twelve Data API convention
   const currencyPair = `${toCurrency}/${fromCurrency}` as CurrencyPair
 
-  // 1. Check session cache first
   const cached = getSessionCache(currencyPair)
   if (cached) {
     console.log(`Using session cache for ${currencyPair}.`)
     return cached
   }
 
-  // 2. Get cached rates from file
   const cachedRates = getFileCacheRates(currencyPair)
   const cachedCount = Object.keys(cachedRates).length
   if (cachedCount > 0) {
     console.log(`Found ${cachedCount} cached rates for ${currencyPair}.`)
   }
 
-  // 3. Determine date range
   const startDate = dayjs().subtract(LOOKBACK_DAYS, "days").format("YYYY-MM-DD") as DateString
   const endDate = dayjs().format("YYYY-MM-DD") as DateString
-
-  // 4. Find uncached date range
   const uncachedRange = getFileCacheUncachedDateRange(currencyPair, startDate, endDate)
 
-  // 5. Fetch missing rates from API
   let fetchedRates: Record<DateString, number> = {}
   if (uncachedRange) {
     fetchedRates = await fetchRatesFromApi(currencyPair, uncachedRange.start, uncachedRange.end)
 
-    // 6. Update file cache with historical rates only
     const historicalRates = filterHistoricalRates(fetchedRates)
     if (Object.keys(historicalRates).length > 0) {
       setFileCacheRates(currencyPair, historicalRates)
@@ -125,13 +118,10 @@ export const getRates = async (fromCurrency: string, toCurrency: string): Promis
     }
   }
 
-  // 7. Merge cached and fetched rates
   const allRates: Record<DateString, number> = {
     ...cachedRates,
     ...fetchedRates,
   }
-
-  // 8. Store in session cache
   setSessionCache(currencyPair, allRates)
 
   return allRates

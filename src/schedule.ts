@@ -28,6 +28,3 @@ process.on("SIGINT", () => {
   task.stop()
   process.exit(0)
 })
-
-// Keep process alive
-process.stdin.resume()

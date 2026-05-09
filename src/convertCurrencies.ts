@@ -17,7 +17,7 @@ export const convertCurrencies = async () => {
   })
   await actualApi.downloadBudget(ACTUAL_CONFIG.syncId)
 
-  for (let account of ACTUAL_CONFIG.convertAccounts) {
+  for (const account of ACTUAL_CONFIG.convertAccounts) {
     try {
       const exchange = createExchange({
         fromCurrency: account.fromCurrency,
@@ -40,7 +40,7 @@ export const convertCurrencies = async () => {
 
       await exchange.fetchRates()
 
-      for (let transaction of transactions) {
+      for (const transaction of transactions) {
         const { amount: convertedAmount, rate } = exchange.applyRate(transaction.amount, transaction.date)
         if (convertedAmount === undefined || rate === undefined) {
           console.warn(`Skipping transaction ${JSON.stringify(transaction)} as no conversion rate was found.`)

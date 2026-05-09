@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest"
+import { describe, it, expect, beforeEach, vi } from "vitest"
 import { type DateString } from "../types"
 
 vi.mock("../exchangeRateFileCache")
@@ -15,9 +15,7 @@ describe("exchangeRateManager", () => {
   let sessionCache: typeof import("../exchangeRateSessionCache")
 
   beforeEach(async () => {
-    vi.clearAllMocks()
     vi.resetModules()
-
     process.env.TWELVE_DATA_API_KEY = "test-api-key"
 
     fileCache = await import("../exchangeRateFileCache")
@@ -26,10 +24,6 @@ describe("exchangeRateManager", () => {
     initializeManager = manager.initializeManager
     shutdownManager = manager.shutdownManager
     getRates = manager.getRates
-  })
-
-  afterEach(() => {
-    vi.resetModules()
   })
 
   describe("initializeManager", () => {

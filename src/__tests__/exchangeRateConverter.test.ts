@@ -8,9 +8,7 @@ describe("exchangeRateConverter", () => {
   let manager: typeof import("../exchangeRateManager")
 
   beforeEach(async () => {
-    vi.clearAllMocks()
     vi.resetModules()
-
     vi.useFakeTimers()
     vi.setSystemTime(new Date("2024-06-15"))
 
@@ -21,7 +19,6 @@ describe("exchangeRateConverter", () => {
 
   afterEach(() => {
     vi.useRealTimers()
-    vi.resetModules()
   })
 
   describe("fetchRates", () => {

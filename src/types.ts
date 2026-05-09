@@ -19,7 +19,4 @@ export type CurrencyPair = "BRL/EUR" | "EUR/BRL"
  */
 export type DateString = `${number}${number}${number}${number}-${number}${number}-${number}${number}`
 
-/**
- * Type for the rates cache structure.
- */
-export type RatesCache = Record<CurrencyPair, Record<DateString, number>>
+export type RatesCache = Partial<Record<CurrencyPair, Record<DateString, number>>>

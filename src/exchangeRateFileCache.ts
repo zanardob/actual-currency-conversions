@@ -4,7 +4,7 @@ import dayjs from "dayjs"
 import { CACHE_FILE_PATH } from "./config"
 import { type CurrencyPair, type DateString, type RatesCache } from "./types"
 
-let cache: Partial<RatesCache> = {}
+let cache: RatesCache = {}
 
 /**
  * Ensures the data directory exists.
@@ -31,7 +31,7 @@ const backupCorruptedCache = (): void => {
   }
 }
 
-const isValidCacheShape = (value: unknown): value is Partial<RatesCache> => {
+const isValidCacheShape = (value: unknown): value is RatesCache => {
   return typeof value === "object" && value !== null && !Array.isArray(value)
 }
 

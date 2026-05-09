@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest"
 import { type DateString } from "./types"
 
-// Mock the manager
 vi.mock("./exchangeRateManager")
 
 describe("exchangeRateConverter", () => {
@@ -12,7 +11,6 @@ describe("exchangeRateConverter", () => {
     vi.clearAllMocks()
     vi.resetModules()
 
-    // Use fixed date for consistent testing
     vi.useFakeTimers()
     vi.setSystemTime(new Date("2024-06-15"))
 

@@ -1,11 +1,9 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest"
 import { type DateString } from "./types"
 
-// Mock dependencies
 vi.mock("./exchangeRateFileCache")
 vi.mock("./exchangeRateSessionCache")
 
-// Mock fetch globally
 const mockFetch = vi.fn()
 global.fetch = mockFetch
 
@@ -22,7 +20,6 @@ describe("exchangeRateManager", () => {
 
     process.env.TWELVE_DATA_API_KEY = "test-api-key"
 
-    // Re-import modules after reset
     fileCache = await import("./exchangeRateFileCache")
     sessionCache = await import("./exchangeRateSessionCache")
     const manager = await import("./exchangeRateManager")

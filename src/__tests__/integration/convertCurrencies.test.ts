@@ -6,14 +6,12 @@ import path from "node:path"
 // Per-test cache file lives in tmpdir so the project's ./actual-cache stays untouched
 const tmpCachePath = path.join(os.tmpdir(), `actual-cache-test-${Date.now()}-${process.pid}.json`)
 
-// External boundary: Actual API
 const mockInit = vi.fn()
 const mockDownloadBudget = vi.fn()
 const mockGetTransactions = vi.fn()
 const mockUpdateTransaction = vi.fn()
 const mockShutdown = vi.fn()
 
-// External boundary: Twelve Data HTTP API
 const mockFetch = vi.fn()
 
 vi.mock("@actual-app/api", () => ({

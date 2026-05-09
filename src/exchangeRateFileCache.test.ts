@@ -2,10 +2,9 @@ import { describe, it, expect, beforeEach, vi, afterEach } from "vitest"
 import fs from "node:fs"
 import { type DateString } from "./types"
 
-// Mock fs module
 vi.mock("node:fs")
 
-// We need to dynamically import the module after mocking to get fresh state
+// Dynamically import the module after mocking to get fresh state
 let loadFileCache: typeof import("./exchangeRateFileCache").loadFileCache
 let saveFileCache: typeof import("./exchangeRateFileCache").saveFileCache
 let getFileCacheRates: typeof import("./exchangeRateFileCache").getFileCacheRates
@@ -16,7 +15,6 @@ let clearFileCache: typeof import("./exchangeRateFileCache").clearFileCache
 describe("exchangeRateFileCache", () => {
   beforeEach(async () => {
     vi.clearAllMocks()
-    // Reset module state by re-importing
     vi.resetModules()
     const module = await import("./exchangeRateFileCache")
     loadFileCache = module.loadFileCache
@@ -67,7 +65,7 @@ describe("exchangeRateFileCache", () => {
     it("creates directory if missing", () => {
       vi.mocked(fs.existsSync).mockReturnValue(false)
 
-      loadFileCache() // Initialize empty cache
+      loadFileCache()
       saveFileCache()
 
       expect(fs.mkdirSync).toHaveBeenCalledWith("./actual-cache", { recursive: true })
@@ -79,7 +77,11 @@ describe("exchangeRateFileCache", () => {
       loadFileCache()
       saveFileCache()
 
-      expect(fs.writeFileSync).toHaveBeenCalledWith("./actual-cache/exchange-rates-cache.json", expect.any(String), "utf-8")
+      expect(fs.writeFileSync).toHaveBeenCalledWith(
+        "./actual-cache/exchange-rates-cache.json",
+        expect.any(String),
+        "utf-8",
+      )
     })
 
     it("handles write errors gracefully", () => {

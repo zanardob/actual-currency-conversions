@@ -7,6 +7,8 @@ RUN npm install --production
 
 COPY . .
 
-RUN mkdir ./actual-cache
+# Create directory for Actual API cache and exchange rate cache
+RUN mkdir -p ./actual-cache
 
-CMD ["npm", "run", "convert"]
+# Run scheduler daemon (runs daily at 00:00 UTC)
+CMD ["npm", "run", "schedule"]

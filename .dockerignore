@@ -4,3 +4,17 @@ dist/
 
 .env
 .DS_Store
+
+# Development files
+.git/
+.gitignore
+README.md
+EXCHANGE_RATES_IMPROVEMENT_PLAN.md
+
+# Cache directories
+actual-cache/
+
+# Test files
+src/**/*.test.ts
+src/__tests__/
+vitest.config.ts

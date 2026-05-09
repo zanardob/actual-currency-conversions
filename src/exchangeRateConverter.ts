@@ -52,7 +52,7 @@ const createExchange = ({ fromCurrency, toCurrency }: ExchangeOptions): Exchange
     if (!rate) {
       const dates = Object.keys(rates).sort((a, b) => a.localeCompare(b))
       for (let i = dates.length - 1; i >= 0; i--) {
-        if (dates[i] < date) {
+        if (dates[i] < date && dates[i] >= dateStart) {
           rate = rates[dates[i]]
           break
         }

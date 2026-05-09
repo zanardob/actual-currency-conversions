@@ -28,17 +28,10 @@ const createExchange = ({ fromCurrency, toCurrency }: ExchangeOptions): Exchange
   const dateEnd = dayjs().format("YYYY-MM-DD")
   let rates: Record<string, number> = {}
 
-  /**
-   * Fetches historical exchange rates via the exchange rate manager.
-   * The manager handles caching and API calls.
-   */
   const fetchRates = async () => {
     rates = await getRates(fromCurrency, toCurrency)
   }
 
-  /**
-   * Applies the exchange rate for a given date to convert an amount.
-   */
   const applyRate = (amount: number, date: string): ConversionResult => {
     if (date < dateStart || date > dateEnd) {
       console.warn(

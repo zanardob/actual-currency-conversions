@@ -6,9 +6,6 @@ import { type CurrencyPair, type DateString, type RatesCache } from "./types"
 
 let cache: RatesCache = {}
 
-/**
- * Ensures the data directory exists.
- */
 const ensureDataDirectory = (): void => {
   const dir = path.dirname(CACHE_FILE_PATH)
   if (!fs.existsSync(dir)) {
@@ -16,9 +13,6 @@ const ensureDataDirectory = (): void => {
   }
 }
 
-/**
- * Backs up a corrupted cache file.
- */
 const backupCorruptedCache = (): void => {
   try {
     if (fs.existsSync(CACHE_FILE_PATH)) {
@@ -56,9 +50,6 @@ export const loadFileCache = (): void => {
   }
 }
 
-/**
- * Saves the current file cache to the JSON file.
- */
 export const saveFileCache = (): void => {
   try {
     ensureDataDirectory()
@@ -69,21 +60,10 @@ export const saveFileCache = (): void => {
   }
 }
 
-/**
- * Gets cached rates for a specific currency pair from the file cache.
- * @param currencyPair - The currency pair (e.g., "EUR/BRL")
- * @returns Record of date -> rate, or empty object if not cached
- */
 export const getFileCacheRates = (currencyPair: CurrencyPair): Record<DateString, number> => {
   return cache[currencyPair] || {}
 }
 
-/**
- * Sets cached rates for a specific currency pair in the file cache.
- * Merges with existing rates and formats to 6 decimal places.
- * @param currencyPair - The currency pair (e.g., "EUR/BRL")
- * @param rates - Record of date -> rate
- */
 export const setFileCacheRates = (currencyPair: CurrencyPair, rates: Record<DateString, number>): void => {
   const formattedRates: Record<DateString, number> = {}
   for (const [date, rate] of Object.entries(rates)) {
@@ -96,14 +76,6 @@ export const setFileCacheRates = (currencyPair: CurrencyPair, rates: Record<Date
   }
 }
 
-/**
- * Determines which dates need to be fetched from the API.
- * Returns the date range that is not in the file cache, or null if all dates are cached.
- * @param currencyPair - The currency pair (e.g., "EUR/BRL")
- * @param startDate - Start date in YYYY-MM-DD format
- * @param endDate - End date in YYYY-MM-DD format
- * @returns Object with start and end dates to fetch, or null if fully cached
- */
 export const getFileCacheUncachedDateRange = (
   currencyPair: CurrencyPair,
   startDate: DateString,
@@ -133,9 +105,6 @@ export const getFileCacheUncachedDateRange = (
   return { start: uncachedStart, end: uncachedEnd }
 }
 
-/**
- * Clears the file cache. Backs up the existing file before clearing.
- */
 export const clearFileCache = (): void => {
   try {
     if (fs.existsSync(CACHE_FILE_PATH)) {

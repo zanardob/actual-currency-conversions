@@ -10,33 +10,18 @@ import { hasSessionCache, getSessionCache, setSessionCache, clearSessionCache } 
 import { LOOKBACK_DAYS, HISTORICAL_THRESHOLD_DAYS } from "./config"
 import { type CurrencyPair, type DateString } from "./types"
 
-/**
- * Initializes the exchange rate manager by loading the file cache.
- * Should be called at the start of a conversion job.
- */
 export const initializeManager = (): void => {
   loadFileCache()
   clearSessionCache()
   console.log("Exchange rate manager initialized.")
 }
 
-/**
- * Shuts down the exchange rate manager by saving the file cache.
- * Should be called at the end of a conversion job.
- */
 export const shutdownManager = (): void => {
   saveFileCache()
   clearSessionCache()
   console.log("Exchange rate manager shut down.")
 }
 
-/**
- * Fetches exchange rates from the Twelve Data API.
- * @param currencyPair - The currency pair in "TO/FROM" format (e.g., "EUR/BRL")
- * @param startDate - Start date in YYYY-MM-DD format
- * @param endDate - End date in YYYY-MM-DD format
- * @returns Record of date -> rate
- */
 const fetchRatesFromApi = async (
   currencyPair: CurrencyPair,
   startDate: DateString,
@@ -86,10 +71,8 @@ const fetchRatesFromApi = async (
 }
 
 /**
- * Filters rates to only include historical rates (older than the threshold).
- * These are stable and safe to cache persistently.
- * @param rates - Record of date -> rate
- * @returns Record of date -> rate (only historical dates)
+ * Only rates older than the threshold are stable enough to persist —
+ * recent rates can still be revised by the data provider.
  */
 const filterHistoricalRates = (rates: Record<DateString, number>): Record<DateString, number> => {
   const thresholdDate = dayjs().subtract(HISTORICAL_THRESHOLD_DAYS, "days").format("YYYY-MM-DD")
@@ -104,17 +87,6 @@ const filterHistoricalRates = (rates: Record<DateString, number>): Record<DateSt
   return historicalRates
 }
 
-/**
- * Gets exchange rates for a currency pair.
- * Uses a multi-tier caching strategy:
- * 1. Check session cache (in-memory, current run)
- * 2. Check file cache (persistent, historical rates)
- * 3. Fetch from API (only for missing dates)
- *
- * @param fromCurrency - Source currency code (e.g., "BRL")
- * @param toCurrency - Target currency code (e.g., "EUR")
- * @returns Record of date -> rate for the full lookback period
- */
 export const getRates = async (fromCurrency: string, toCurrency: string): Promise<Record<DateString, number>> => {
   // Currency pair format is TO/FROM to match Twelve Data API convention
   const currencyPair = `${toCurrency}/${fromCurrency}` as CurrencyPair

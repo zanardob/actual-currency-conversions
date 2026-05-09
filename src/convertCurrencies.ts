@@ -5,9 +5,6 @@ import createExchange from "./exchangeRateConverter"
 import { ACTUAL_CONFIG, LOOKBACK_DAYS } from "./config"
 import { initializeManager, shutdownManager } from "./exchangeRateManager"
 
-/**
- * Converts transactions in configured accounts from their source currency to the target currency.
- */
 export const convertCurrencies = async () => {
   console.log("Starting conversion job...")
 

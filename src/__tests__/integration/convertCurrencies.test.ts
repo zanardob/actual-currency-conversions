@@ -46,7 +46,6 @@ const cleanupTmpCache = () => {
 
 describe("convertCurrencies integration", () => {
   beforeEach(() => {
-    vi.clearAllMocks()
     vi.resetModules()
     cleanupTmpCache()
 
@@ -193,26 +192,36 @@ describe("convertCurrencies integration", () => {
     const { convertCurrencies } = await import("../../convertCurrencies")
     await convertCurrencies()
 
+    // Frozen time = 2024-06-15. Lookback 365 days → start_date 2023-06-16.
+    const firstFetchUrl = mockFetch.mock.calls[0][0] as string
+    expect(firstFetchUrl).toContain("start_date=2023-06-16")
+    expect(firstFetchUrl).toContain("end_date=2024-06-15")
+
+    // Historical threshold = 30 days, so historicalThrough should be 2024-05-15
+    // (the latest date considered "historical" relative to today).
     expect(fs.existsSync(tmpCachePath)).toBe(true)
     const cacheContents = JSON.parse(fs.readFileSync(tmpCachePath, "utf-8"))
     expect(cacheContents).toMatchObject({
       "EUR/BRL": {
-        "2024-01-01": expect.any(Number),
-        "2024-01-02": expect.any(Number),
+        rates: {
+          "2024-01-01": expect.any(Number),
+          "2024-01-02": expect.any(Number),
+        },
+        historicalThrough: "2024-05-15",
       },
     })
 
-    // Second run: the file cache should already have the historical dates,
-    // so the fetched range should not include them.
+    // Second run: the historical portion is covered, so the fetch should start
+    // exactly one day past historicalThrough and end at today.
     vi.resetModules()
     mockFetch.mockClear()
 
     const { convertCurrencies: convertCurrenciesAgain } = await import("../../convertCurrencies")
     await convertCurrenciesAgain()
 
-    for (const call of mockFetch.mock.calls) {
-      const url = call[0] as string
-      expect(url).not.toContain("start_date=2024-01-01")
-    }
+    expect(mockFetch).toHaveBeenCalledTimes(1)
+    const secondFetchUrl = mockFetch.mock.calls[0][0] as string
+    expect(secondFetchUrl).toContain("start_date=2024-05-16")
+    expect(secondFetchUrl).toContain("end_date=2024-06-15")
   })
 })

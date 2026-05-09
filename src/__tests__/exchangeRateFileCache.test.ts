@@ -1,10 +1,9 @@
-import { describe, it, expect, beforeEach, vi, afterEach } from "vitest"
+import { describe, it, expect, beforeEach, vi } from "vitest"
 import fs from "node:fs"
 import { type DateString } from "../types"
 
 vi.mock("node:fs")
 
-// Dynamically import the module after mocking to get fresh state
 let loadFileCache: typeof import("../exchangeRateFileCache").loadFileCache
 let saveFileCache: typeof import("../exchangeRateFileCache").saveFileCache
 let getFileCacheRates: typeof import("../exchangeRateFileCache").getFileCacheRates
@@ -14,7 +13,6 @@ let clearFileCache: typeof import("../exchangeRateFileCache").clearFileCache
 
 describe("exchangeRateFileCache", () => {
   beforeEach(async () => {
-    vi.clearAllMocks()
     vi.resetModules()
     const module = await import("../exchangeRateFileCache")
     loadFileCache = module.loadFileCache
@@ -25,19 +23,21 @@ describe("exchangeRateFileCache", () => {
     clearFileCache = module.clearFileCache
   })
 
-  afterEach(() => {
-    vi.resetModules()
-  })
-
   describe("loadFileCache", () => {
     it("loads existing cache file", () => {
-      const mockData = { "EUR/BRL": { "2024-01-01": 5.5 } }
+      const mockData = {
+        "EUR/BRL": {
+          rates: { "2024-01-01": 5.5 },
+          historicalThrough: "2024-01-01",
+        },
+      }
       vi.mocked(fs.existsSync).mockReturnValue(true)
       vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(mockData))
 
       loadFileCache()
 
       expect(fs.readFileSync).toHaveBeenCalledWith("./actual-cache/exchange-rates-cache.json", "utf-8")
+      expect(getFileCacheRates("EUR/BRL")).toEqual({ "2024-01-01": 5.5 })
     })
 
     it("handles missing cache file", () => {
@@ -51,6 +51,19 @@ describe("exchangeRateFileCache", () => {
     it("handles corrupted cache file by backing up", () => {
       vi.mocked(fs.existsSync).mockReturnValue(true)
       vi.mocked(fs.readFileSync).mockReturnValue("invalid json")
+
+      loadFileCache()
+
+      expect(fs.renameSync).toHaveBeenCalledWith(
+        "./actual-cache/exchange-rates-cache.json",
+        "./actual-cache/exchange-rates-cache.json.bak",
+      )
+    })
+
+    it("backs up cache files in legacy/invalid shapes", () => {
+      const legacyData = { "EUR/BRL": { "2024-01-01": 5.5 } }
+      vi.mocked(fs.existsSync).mockReturnValue(true)
+      vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(legacyData))
 
       loadFileCache()
 
@@ -106,7 +119,12 @@ describe("exchangeRateFileCache", () => {
     })
 
     it("returns cached rates for pair", () => {
-      const mockData = { "EUR/BRL": { "2024-01-01": 5.5 } }
+      const mockData = {
+        "EUR/BRL": {
+          rates: { "2024-01-01": 5.5 },
+          historicalThrough: "2024-01-01",
+        },
+      }
       vi.mocked(fs.existsSync).mockReturnValue(true)
       vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(mockData))
       loadFileCache()
@@ -122,19 +140,32 @@ describe("exchangeRateFileCache", () => {
       vi.mocked(fs.existsSync).mockReturnValue(false)
       loadFileCache()
 
-      setFileCacheRates("EUR/BRL", { "2024-01-01": 5.123456789 } as Record<DateString, number>)
+      setFileCacheRates(
+        "EUR/BRL",
+        { "2024-01-01": 5.123456789 } as Record<DateString, number>,
+        "2024-01-01" as DateString,
+      )
 
       const rates = getFileCacheRates("EUR/BRL")
       expect(rates["2024-01-01" as DateString]).toBe(5.123457)
     })
 
     it("merges with existing rates", () => {
-      const mockData = { "EUR/BRL": { "2024-01-01": 5.5 } }
+      const mockData = {
+        "EUR/BRL": {
+          rates: { "2024-01-01": 5.5 },
+          historicalThrough: "2024-01-01",
+        },
+      }
       vi.mocked(fs.existsSync).mockReturnValue(true)
       vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(mockData))
       loadFileCache()
 
-      setFileCacheRates("EUR/BRL", { "2024-01-02": 5.6 } as Record<DateString, number>)
+      setFileCacheRates(
+        "EUR/BRL",
+        { "2024-01-02": 5.6 } as Record<DateString, number>,
+        "2024-01-02" as DateString,
+      )
 
       const rates = getFileCacheRates("EUR/BRL")
       expect(rates).toEqual({
@@ -142,50 +173,147 @@ describe("exchangeRateFileCache", () => {
         "2024-01-02": 5.6,
       })
     })
-  })
 
-  describe("getFileCacheUncachedDateRange", () => {
-    it("returns null when all dates are cached", () => {
+    it("advances historicalThrough monotonically (does not regress to an earlier date)", () => {
       const mockData = {
         "EUR/BRL": {
-          "2024-01-01": 5.5,
-          "2024-01-02": 5.6,
-          "2024-01-03": 5.7,
+          rates: { "2024-01-01": 5.5 },
+          historicalThrough: "2024-01-05",
         },
       }
       vi.mocked(fs.existsSync).mockReturnValue(true)
       vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(mockData))
       loadFileCache()
 
-      const range = getFileCacheUncachedDateRange("EUR/BRL", "2024-01-01" as DateString, "2024-01-03" as DateString)
+      setFileCacheRates("EUR/BRL", {} as Record<DateString, number>, "2024-01-03" as DateString)
+      saveFileCache()
 
-      expect(range).toBeNull()
-    })
-
-    it("returns full range when no dates are cached", () => {
-      vi.mocked(fs.existsSync).mockReturnValue(false)
-      loadFileCache()
-
-      const range = getFileCacheUncachedDateRange("EUR/BRL", "2024-01-01" as DateString, "2024-01-03" as DateString)
-
-      expect(range).toEqual({
-        start: "2024-01-01",
-        end: "2024-01-03",
+      const written = vi.mocked(fs.writeFileSync).mock.calls.at(-1)?.[1] as string
+      expect(JSON.parse(written)).toMatchObject({
+        "EUR/BRL": { historicalThrough: "2024-01-05" },
       })
     })
 
-    it("returns partial range when some dates are cached", () => {
-      const mockData = { "EUR/BRL": { "2024-01-01": 5.5 } }
+    it("advances historicalThrough when given a later date", () => {
+      const mockData = {
+        "EUR/BRL": {
+          rates: { "2024-01-01": 5.5 },
+          historicalThrough: "2024-01-01",
+        },
+      }
       vi.mocked(fs.existsSync).mockReturnValue(true)
       vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(mockData))
       loadFileCache()
 
-      const range = getFileCacheUncachedDateRange("EUR/BRL", "2024-01-01" as DateString, "2024-01-03" as DateString)
+      setFileCacheRates(
+        "EUR/BRL",
+        { "2024-01-05": 5.6 } as Record<DateString, number>,
+        "2024-01-05" as DateString,
+      )
+      saveFileCache()
 
-      expect(range).toEqual({
-        start: "2024-01-02",
-        end: "2024-01-03",
+      const written = vi.mocked(fs.writeFileSync).mock.calls.at(-1)?.[1] as string
+      expect(JSON.parse(written)).toMatchObject({
+        "EUR/BRL": { historicalThrough: "2024-01-05" },
       })
+    })
+  })
+
+  describe("getFileCacheUncachedDateRange", () => {
+    it("returns full range when no cache entry exists", () => {
+      vi.mocked(fs.existsSync).mockReturnValue(false)
+      loadFileCache()
+
+      const range = getFileCacheUncachedDateRange(
+        "EUR/BRL",
+        "2024-01-01" as DateString,
+        "2024-01-03" as DateString,
+      )
+
+      expect(range).toEqual({ start: "2024-01-01", end: "2024-01-03" })
+    })
+
+    it("returns null when historicalThrough already covers the requested end", () => {
+      const mockData = {
+        "EUR/BRL": {
+          rates: { "2024-01-01": 5.5 },
+          historicalThrough: "2024-01-05",
+        },
+      }
+      vi.mocked(fs.existsSync).mockReturnValue(true)
+      vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(mockData))
+      loadFileCache()
+
+      const range = getFileCacheUncachedDateRange(
+        "EUR/BRL",
+        "2024-01-01" as DateString,
+        "2024-01-03" as DateString,
+      )
+
+      expect(range).toBeNull()
+    })
+
+    it("returns range starting one day after historicalThrough", () => {
+      const mockData = {
+        "EUR/BRL": {
+          rates: { "2024-01-01": 5.5 },
+          historicalThrough: "2024-01-02",
+        },
+      }
+      vi.mocked(fs.existsSync).mockReturnValue(true)
+      vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(mockData))
+      loadFileCache()
+
+      const range = getFileCacheUncachedDateRange(
+        "EUR/BRL",
+        "2024-01-01" as DateString,
+        "2024-01-05" as DateString,
+      )
+
+      expect(range).toEqual({ start: "2024-01-03", end: "2024-01-05" })
+    })
+
+    it("treats dates with no rate as covered when below historicalThrough (handles weekends/holidays)", () => {
+      // Cache has only Friday's rate but historicalThrough covers through Sunday —
+      // the API returned nothing for Sat/Sun, but we should not re-fetch them.
+      const mockData = {
+        "EUR/BRL": {
+          rates: { "2024-01-05": 5.5 },
+          historicalThrough: "2024-01-07",
+        },
+      }
+      vi.mocked(fs.existsSync).mockReturnValue(true)
+      vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(mockData))
+      loadFileCache()
+
+      const range = getFileCacheUncachedDateRange(
+        "EUR/BRL",
+        "2024-01-05" as DateString,
+        "2024-01-07" as DateString,
+      )
+
+      expect(range).toBeNull()
+    })
+
+    it("returns the full range when startDate is older than historicalThrough but endDate extends past it", () => {
+      const mockData = {
+        "EUR/BRL": {
+          rates: { "2024-01-05": 5.5 },
+          historicalThrough: "2024-01-05",
+        },
+      }
+      vi.mocked(fs.existsSync).mockReturnValue(true)
+      vi.mocked(fs.readFileSync).mockReturnValue(JSON.stringify(mockData))
+      loadFileCache()
+
+      const range = getFileCacheUncachedDateRange(
+        "EUR/BRL",
+        "2024-01-01" as DateString,
+        "2024-01-10" as DateString,
+      )
+
+      // We don't try to backfill the older gap; we only fetch what's past the boundary.
+      expect(range).toEqual({ start: "2024-01-06", end: "2024-01-10" })
     })
   })
 

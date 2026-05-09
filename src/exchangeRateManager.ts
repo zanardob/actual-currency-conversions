@@ -71,19 +71,20 @@ const fetchRatesFromApi = async (
 }
 
 /**
- * Only rates older than the threshold are stable enough to persist —
- * recent rates can still be revised by the data provider.
+ * Filters the API response to only the dates that fall in historical territory
+ * (older than the threshold) — recent rates can still be revised by the data
+ * provider, so we never persist them.
  */
-const filterHistoricalRates = (rates: Record<DateString, number>): Record<DateString, number> => {
-  const thresholdDate = dayjs().subtract(HISTORICAL_THRESHOLD_DAYS, "days").format("YYYY-MM-DD")
+const filterHistoricalRates = (
+  rates: Record<DateString, number>,
+  historicalCutoff: DateString,
+): Record<DateString, number> => {
   const historicalRates: Record<DateString, number> = {}
-
   for (const [date, rate] of Object.entries(rates)) {
-    if (date < thresholdDate) {
+    if (date < historicalCutoff) {
       historicalRates[date as DateString] = rate
     }
   }
-
   return historicalRates
 }
 
@@ -111,10 +112,21 @@ export const getRates = async (fromCurrency: string, toCurrency: string): Promis
   if (uncachedRange) {
     fetchedRates = await fetchRatesFromApi(currencyPair, uncachedRange.start, uncachedRange.end)
 
-    const historicalRates = filterHistoricalRates(fetchedRates)
-    if (Object.keys(historicalRates).length > 0) {
-      setFileCacheRates(currencyPair, historicalRates)
-      console.log(`Cached ${Object.keys(historicalRates).length} historical rates for ${currencyPair}.`)
+    // Anything strictly before historicalCutoff is considered stable.
+    const historicalCutoff = dayjs(endDate).subtract(HISTORICAL_THRESHOLD_DAYS, "days").format("YYYY-MM-DD") as DateString
+    const latestHistoricalDate = dayjs(historicalCutoff).subtract(1, "day").format("YYYY-MM-DD") as DateString
+
+    // Advance the historical boundary whenever our fetch range reached into
+    // historical territory — even if the API returned no rates for those dates
+    // (weekends, holidays). Otherwise those gap dates would be re-fetched forever.
+    if (uncachedRange.start <= latestHistoricalDate) {
+      const newHistoricalThrough =
+        uncachedRange.end < latestHistoricalDate ? uncachedRange.end : latestHistoricalDate
+      const historicalRates = filterHistoricalRates(fetchedRates, historicalCutoff)
+      setFileCacheRates(currencyPair, historicalRates, newHistoricalThrough)
+      console.log(
+        `Cached ${Object.keys(historicalRates).length} historical rates for ${currencyPair} (through ${newHistoricalThrough}).`,
+      )
     }
   }
 

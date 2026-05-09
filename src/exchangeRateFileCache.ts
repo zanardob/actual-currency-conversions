@@ -26,7 +26,19 @@ const backupCacheFile = (reason: string): void => {
 }
 
 const isValidCacheShape = (value: unknown): value is RatesCache => {
-  return typeof value === "object" && value !== null && !Array.isArray(value)
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return false
+  }
+  for (const entry of Object.values(value as Record<string, unknown>)) {
+    if (typeof entry !== "object" || entry === null || Array.isArray(entry)) return false
+    const e = entry as Record<string, unknown>
+    if (typeof e.historicalThrough !== "string") return false
+    if (typeof e.rates !== "object" || e.rates === null || Array.isArray(e.rates)) return false
+    for (const rate of Object.values(e.rates as Record<string, unknown>)) {
+      if (typeof rate !== "number") return false
+    }
+  }
+  return true
 }
 
 export const loadFileCache = (): void => {
@@ -44,7 +56,7 @@ export const loadFileCache = (): void => {
       console.log("No existing cache file found. Starting with empty cache.")
     }
   } catch {
-    console.warn("Cache file is corrupted. Backing up and starting fresh.")
+    console.warn("Cache file is corrupted or in an unrecognized format. Backing up and starting fresh.")
     backupCacheFile("corrupted")
     cache = {}
   }
@@ -61,48 +73,61 @@ export const saveFileCache = (): void => {
 }
 
 export const getFileCacheRates = (currencyPair: CurrencyPair): Record<DateString, number> => {
-  return cache[currencyPair] || {}
+  return cache[currencyPair]?.rates ?? {}
 }
 
-export const setFileCacheRates = (currencyPair: CurrencyPair, rates: Record<DateString, number>): void => {
+/**
+ * Persists historical rates and advances the historical coverage boundary for
+ * the pair. `historicalThrough` is monotonically increasing — earlier values
+ * are ignored.
+ */
+export const setFileCacheRates = (
+  currencyPair: CurrencyPair,
+  rates: Record<DateString, number>,
+  historicalThrough: DateString,
+): void => {
   const formattedRates: Record<DateString, number> = {}
   for (const [date, rate] of Object.entries(rates)) {
     formattedRates[date as DateString] = Number(rate.toFixed(6))
   }
 
+  const existing = cache[currencyPair]
+  const mergedThrough =
+    existing?.historicalThrough && existing.historicalThrough > historicalThrough
+      ? existing.historicalThrough
+      : historicalThrough
+
   cache[currencyPair] = {
-    ...cache[currencyPair],
-    ...formattedRates,
+    rates: { ...(existing?.rates ?? {}), ...formattedRates },
+    historicalThrough: mergedThrough,
   }
 }
 
+/**
+ * Returns the date range that still needs fetching, or `null` when the request
+ * is fully covered. Dates ≤ historicalThrough are treated as cached even if no
+ * rate exists for them (e.g. weekends and holidays where the API returned
+ * nothing), so the fetch range only ever extends *past* the boundary.
+ */
 export const getFileCacheUncachedDateRange = (
   currencyPair: CurrencyPair,
   startDate: DateString,
   endDate: DateString,
 ): { start: DateString; end: DateString } | null => {
-  const cachedRates = cache[currencyPair] || {}
-  const cachedDates = new Set(Object.keys(cachedRates))
-
-  let uncachedStart: DateString | null = null
-  let uncachedEnd: DateString | null = null
-
-  const end = dayjs(endDate)
-  for (let d = dayjs(startDate); !d.isAfter(end); d = d.add(1, "day")) {
-    const dateStr = d.format("YYYY-MM-DD") as DateString
-    if (!cachedDates.has(dateStr)) {
-      if (!uncachedStart) {
-        uncachedStart = dateStr
-      }
-      uncachedEnd = dateStr
-    }
+  const entry = cache[currencyPair]
+  if (!entry?.historicalThrough) {
+    return { start: startDate, end: endDate }
   }
-
-  if (!uncachedStart || !uncachedEnd) {
+  if (entry.historicalThrough >= endDate) {
     return null
   }
 
-  return { start: uncachedStart, end: uncachedEnd }
+  const fetchStart =
+    entry.historicalThrough >= startDate
+      ? (dayjs(entry.historicalThrough).add(1, "day").format("YYYY-MM-DD") as DateString)
+      : startDate
+
+  return { start: fetchStart, end: endDate }
 }
 
 export const clearFileCache = (): void => {

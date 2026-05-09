@@ -1,5 +1,6 @@
 import fs from "node:fs"
 import path from "node:path"
+import dayjs from "dayjs"
 import { CACHE_FILE_PATH } from "./config"
 import { type CurrencyPair, type DateString, type RatesCache } from "./types"
 
@@ -111,11 +112,9 @@ export const getFileCacheUncachedDateRange = (
   let uncachedStart: DateString | null = null
   let uncachedEnd: DateString | null = null
 
-  const start = new Date(startDate)
-  const end = new Date(endDate)
-
-  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
-    const dateStr = d.toISOString().split("T")[0] as DateString
+  const end = dayjs(endDate)
+  for (let d = dayjs(startDate); !d.isAfter(end); d = d.add(1, "day")) {
+    const dateStr = d.format("YYYY-MM-DD") as DateString
     if (!cachedDates.has(dateStr)) {
       if (!uncachedStart) {
         uncachedStart = dateStr

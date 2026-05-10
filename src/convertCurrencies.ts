@@ -1,14 +1,13 @@
+import { fileURLToPath } from "node:url"
 import actualApi from "@actual-app/api"
-import cron from "node-cron"
-import dayjs from "dayjs"
-import createExchange from "./exchangeRates"
-import { ACTUAL_CONFIG, LOOKBACK_DAYS } from "./config"
+import createExchange from "./exchangeRateConverter"
+import { ACTUAL_CONFIG, getLookbackRange } from "./config"
+import { initializeManager, shutdownManager } from "./exchangeRateManager"
 
-/**
- * Converts transactions in configured accounts from their source currency to the target currency.
- */
-const convert = async () => {
+export const convertCurrencies = async () => {
   console.log("Starting conversion job...")
+
+  initializeManager()
 
   await actualApi.init({
     dataDir: "./actual-cache",
@@ -17,19 +16,17 @@ const convert = async () => {
   })
   await actualApi.downloadBudget(ACTUAL_CONFIG.syncId)
 
-  for (let account of ACTUAL_CONFIG.convertAccounts) {
+  for (const account of ACTUAL_CONFIG.convertAccounts) {
     try {
       const exchange = createExchange({
         fromCurrency: account.fromCurrency,
         toCurrency: ACTUAL_CONFIG.toCurrency,
       })
 
-      const dateStart = dayjs().subtract(LOOKBACK_DAYS, "days").format("YYYY-MM-DD")
-      const dateEnd = dayjs().format("YYYY-MM-DD")
+      const { start: dateStart, end: dateEnd } = getLookbackRange()
       let transactions = await actualApi.getTransactions(account.id, dateStart, dateEnd)
       let convertedTransactionsCount = 0
 
-      // Check if there are transactions to convert
       transactions = transactions.filter((transaction) => !transaction.notes?.includes(`${account.fromCurrency} @`))
       if (transactions.length === 0) {
         console.log(
@@ -40,7 +37,7 @@ const convert = async () => {
 
       await exchange.fetchRates()
 
-      for (let transaction of transactions) {
+      for (const transaction of transactions) {
         const { amount: convertedAmount, rate } = exchange.applyRate(transaction.amount, transaction.date)
         if (convertedAmount === undefined || rate === undefined) {
           console.warn(`Skipping transaction ${JSON.stringify(transaction)} as no conversion rate was found.`)
@@ -67,22 +64,11 @@ const convert = async () => {
     }
   }
 
+  shutdownManager()
   await actualApi.shutdown()
   console.log("Conversion job finished.")
 }
 
-// 00:00 UTC daily
-cron.schedule(
-  "0 0 * * *",
-  () => {
-    convert()
-  },
-  { timezone: "UTC" },
-)
-
-console.log("Cron scheduler started: running daily at 00:00 UTC")
-
-// Allow manual run if script is executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  convert()
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  convertCurrencies()
 }

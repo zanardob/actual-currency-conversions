@@ -1,13 +1,5 @@
-interface ConvertAccount {
-  id: string
-  fromCurrency: string
-}
-
-interface ActualConfig {
-  syncId: string
-  convertAccounts: ConvertAccount[]
-  toCurrency: string
-}
+import dayjs from "dayjs"
+import { ActualConfig, type DateString } from "./types"
 
 /**
  * Configuration settings for the conversions.
@@ -31,3 +23,25 @@ export const ACTUAL_CONFIG: ActualConfig = {
  * How many days to look back for account activity.
  */
 export const LOOKBACK_DAYS = 365
+
+/**
+ * Historical threshold in days. Rates older than this are considered stable
+ * and will be persisted to the file cache.
+ */
+export const HISTORICAL_THRESHOLD_DAYS = 30
+
+/**
+ * Uses actual-cache directory which is volume-mounted in Docker.
+ */
+export const CACHE_FILE_PATH = "./actual-cache/exchange-rates-cache.json"
+
+/**
+ * Returns the [today - LOOKBACK_DAYS, today] window as YYYY-MM-DD strings.
+ */
+export const getLookbackRange = (): { start: DateString; end: DateString } => {
+  const now = dayjs()
+  return {
+    start: now.subtract(LOOKBACK_DAYS, "days").format("YYYY-MM-DD") as DateString,
+    end: now.format("YYYY-MM-DD") as DateString,
+  }
+}

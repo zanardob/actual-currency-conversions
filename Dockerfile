@@ -3,10 +3,9 @@ FROM node:24-alpine
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm install --production
+RUN mkdir -p ./actual-cache && \
+    npm ci --omit=dev
 
 COPY . .
 
-RUN mkdir ./actual-cache
-
-CMD ["npm", "run", "convert"]
+CMD ["npm", "run", "schedule"]

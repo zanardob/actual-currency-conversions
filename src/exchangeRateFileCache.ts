@@ -6,13 +6,6 @@ import { type CurrencyPair, type DateString, type RatesCache } from "./types"
 
 let cache: RatesCache = {}
 
-const ensureDataDirectory = (): void => {
-  const dir = path.dirname(CACHE_FILE_PATH)
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true })
-  }
-}
-
 const backupCacheFile = (reason: string): void => {
   try {
     if (fs.existsSync(CACHE_FILE_PATH)) {
@@ -64,7 +57,7 @@ export const loadFileCache = (): void => {
 
 export const saveFileCache = (): void => {
   try {
-    ensureDataDirectory()
+    fs.mkdirSync(path.dirname(CACHE_FILE_PATH), { recursive: true })
     fs.writeFileSync(CACHE_FILE_PATH, JSON.stringify(cache, null, 2), "utf-8")
     console.log("Exchange rate cache saved successfully.")
   } catch (error) {

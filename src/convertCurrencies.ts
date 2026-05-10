@@ -1,8 +1,7 @@
 import { fileURLToPath } from "node:url"
 import actualApi from "@actual-app/api"
-import dayjs from "dayjs"
 import createExchange from "./exchangeRateConverter"
-import { ACTUAL_CONFIG, LOOKBACK_DAYS } from "./config"
+import { ACTUAL_CONFIG, getLookbackRange } from "./config"
 import { initializeManager, shutdownManager } from "./exchangeRateManager"
 
 export const convertCurrencies = async () => {
@@ -24,12 +23,10 @@ export const convertCurrencies = async () => {
         toCurrency: ACTUAL_CONFIG.toCurrency,
       })
 
-      const dateStart = dayjs().subtract(LOOKBACK_DAYS, "days").format("YYYY-MM-DD")
-      const dateEnd = dayjs().format("YYYY-MM-DD")
+      const { start: dateStart, end: dateEnd } = getLookbackRange()
       let transactions = await actualApi.getTransactions(account.id, dateStart, dateEnd)
       let convertedTransactionsCount = 0
 
-      // Check if there are transactions to convert
       transactions = transactions.filter((transaction) => !transaction.notes?.includes(`${account.fromCurrency} @`))
       if (transactions.length === 0) {
         console.log(

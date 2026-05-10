@@ -7,7 +7,7 @@ import {
   getFileCacheUncachedDateRange,
 } from "./exchangeRateFileCache"
 import { getSessionCache, setSessionCache, clearSessionCache } from "./exchangeRateSessionCache"
-import { LOOKBACK_DAYS, HISTORICAL_THRESHOLD_DAYS } from "./config"
+import { HISTORICAL_THRESHOLD_DAYS, getLookbackRange } from "./config"
 import { type CurrencyPair, type DateString } from "./types"
 
 export const initializeManager = (): void => {
@@ -104,8 +104,7 @@ export const getRates = async (fromCurrency: string, toCurrency: string): Promis
     console.log(`Found ${cachedCount} cached rates for ${currencyPair}.`)
   }
 
-  const startDate = dayjs().subtract(LOOKBACK_DAYS, "days").format("YYYY-MM-DD") as DateString
-  const endDate = dayjs().format("YYYY-MM-DD") as DateString
+  const { start: startDate, end: endDate } = getLookbackRange()
   const uncachedRange = getFileCacheUncachedDateRange(currencyPair, startDate, endDate)
 
   let fetchedRates: Record<DateString, number> = {}

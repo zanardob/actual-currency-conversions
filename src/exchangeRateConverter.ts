@@ -1,5 +1,4 @@
-import dayjs from "dayjs"
-import { LOOKBACK_DAYS } from "./config"
+import { getLookbackRange } from "./config"
 import { getRates } from "./exchangeRateManager"
 
 interface ExchangeOptions {
@@ -19,13 +18,8 @@ interface Exchange {
   applyRate: (amount: number, date: string) => ConversionResult
 }
 
-/**
- * Creates an exchange rate converter that fetches and applies historical rates.
- * Uses inverted rates because we're usually converting from a weaker currency to a stronger one.
- */
 const createExchange = ({ fromCurrency, toCurrency }: ExchangeOptions): Exchange => {
-  const dateStart = dayjs().subtract(LOOKBACK_DAYS, "days").format("YYYY-MM-DD")
-  const dateEnd = dayjs().format("YYYY-MM-DD")
+  const { start: dateStart, end: dateEnd } = getLookbackRange()
   let rates: Record<string, number> = {}
   let sortedDates: string[] = []
 

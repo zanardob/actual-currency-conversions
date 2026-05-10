@@ -7,3 +7,6 @@ dist/
 
 # Cache directories
 actual-cache/
+
+# Claude Code
+.claude/**local**

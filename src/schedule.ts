@@ -1,9 +1,9 @@
 import cron from "node-cron"
 import { convertCurrencies } from "./convertCurrencies"
 
-// 00:00 UTC daily
+// Top of every hour, UTC
 const task = cron.schedule(
-  "0 0 * * *",
+  "0 * * * *",
   async () => {
     try {
       await convertCurrencies()
@@ -14,7 +14,7 @@ const task = cron.schedule(
   { timezone: "UTC" },
 )
 
-console.log("Cron scheduler started: running daily at 00:00 UTC")
+console.log("Cron scheduler started: running hourly at :00 UTC")
 
 // Graceful shutdown
 process.on("SIGTERM", () => {

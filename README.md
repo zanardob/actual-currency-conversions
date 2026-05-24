@@ -4,8 +4,9 @@ A Docker-based service for automatic currency conversion in [Actual Budget](http
 
 ## Features
 
-- **Automatic Daily Conversions**: Runs daily at 00:00 UTC via cron scheduler
+- **Hourly Conversions**: Runs every hour at :00 UTC via cron scheduler
 - **Historical Exchange Rates**: Uses [Twelve Data API](https://twelvedata.com/docs) for accurate historical rates
+- **Cached Rate Lookups**: Persists stable historical rates to disk so repeat runs stay within the API quota
 - **Smart Transaction Tracking**: Only converts transactions once, marking them with original amount and exchange rate
 - **Docker-Ready**: Designed to run as a companion container to Actual Budget
 
@@ -87,7 +88,7 @@ The Actual Budget service should also use the same "proxy" network to allow comm
 $ docker compose up -d
 ```
 
-The service will start immediately and run conversions, then continue running daily at 00:00 UTC.
+The service starts the cron scheduler and runs the conversion job every hour at :00 UTC. The first run happens at the next top-of-the-hour after the container starts.
 
 ## Development
 

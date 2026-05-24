@@ -56,7 +56,12 @@ const fetchRatesFromApi = async (
 
     if (data.values) {
       for (const rate of data.values) {
-        rates[rate.datetime as DateString] = Number.parseFloat(rate.close)
+        const parsed = Number.parseFloat(rate.close)
+        if (!Number.isFinite(parsed)) {
+          console.warn(`Skipping non-numeric rate for ${currencyPair} on ${rate.datetime}:`, rate.close)
+          continue
+        }
+        rates[rate.datetime as DateString] = parsed
       }
       console.log(`Fetched ${Object.keys(rates).length} rates for ${currencyPair}.`)
     } else {

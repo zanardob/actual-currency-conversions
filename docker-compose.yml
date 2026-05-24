@@ -1,6 +1,7 @@
 services:
   actual-currency-conversions:
     # build: .  # If running locally
+    # Pinned to a specific release — bump in lockstep with new published tags from .github/workflows/docker-publish.yml
     image: ghcr.io/zanardob/actual-currency-conversions:1.0.0
     container_name: "actual-currency-conversions"
     restart: "always"

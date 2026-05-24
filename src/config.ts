@@ -1,5 +1,5 @@
 import dayjs from "dayjs"
-import { ActualConfig, type DateString } from "./types"
+import { type ActualConfig, type DateString } from "./types"
 
 /**
  * Configuration settings for the conversions.

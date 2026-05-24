@@ -45,13 +45,11 @@ const createExchange = ({ fromCurrency, toCurrency }: ExchangeOptions): Exchange
           break
         }
       }
-      console.warn(
-        `No rate found for ${date}, ${
-          rate
-            ? `falling back to previous rate ${rate}.`
-            : "no previous rate found either. No conversion will be applied."
-        }`,
-      )
+      if (rate) {
+        console.log(`No rate found for ${date}, falling back to previous rate ${rate}.`)
+      } else {
+        console.warn(`No rate found for ${date}, no previous rate found either. No conversion will be applied.`)
+      }
     }
     if (!rate) {
       return {}

@@ -31,9 +31,12 @@ export const LOOKBACK_DAYS = 365
 export const HISTORICAL_THRESHOLD_DAYS = 30
 
 /**
- * Uses actual-cache directory which is volume-mounted in Docker.
+ * Volume-mounted data directory used by both the Actual SDK (budget data) and
+ * the exchange rate file cache. In Docker this is bind-mounted from the host.
  */
-export const CACHE_FILE_PATH = "./actual-cache/exchange-rates-cache.json"
+export const ACTUAL_CACHE_DIR = "./actual-cache"
+
+export const CACHE_FILE_PATH = `${ACTUAL_CACHE_DIR}/exchange-rates-cache.json`
 
 /**
  * Returns the [today - LOOKBACK_DAYS, today] window as YYYY-MM-DD strings.

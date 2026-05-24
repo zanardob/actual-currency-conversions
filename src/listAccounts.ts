@@ -1,6 +1,6 @@
 import { fileURLToPath } from "node:url"
 import actualApi from "@actual-app/api"
-import { ACTUAL_CONFIG } from "./config"
+import { ACTUAL_CACHE_DIR, ACTUAL_CONFIG } from "./config"
 
 /**
  * Lists all accounts in the configured Actual Budget instance.
@@ -9,7 +9,7 @@ const listAccounts = async () => {
   console.log("Fetching accounts...")
 
   await actualApi.init({
-    dataDir: "./actual-cache",
+    dataDir: ACTUAL_CACHE_DIR,
     serverURL: process.env.ACTUAL_SERVER_URL,
     password: process.env.ACTUAL_PASSWORD,
   })

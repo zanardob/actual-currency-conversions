@@ -1,7 +1,7 @@
 import { fileURLToPath } from "node:url"
 import actualApi from "@actual-app/api"
 import createExchange from "./exchangeRateConverter"
-import { ACTUAL_CONFIG, getLookbackRange } from "./config"
+import { ACTUAL_CACHE_DIR, ACTUAL_CONFIG, getLookbackRange } from "./config"
 import { initializeManager, shutdownManager } from "./exchangeRateManager"
 
 export const convertCurrencies = async () => {
@@ -10,7 +10,7 @@ export const convertCurrencies = async () => {
   initializeManager()
 
   await actualApi.init({
-    dataDir: "./actual-cache",
+    dataDir: ACTUAL_CACHE_DIR,
     serverURL: process.env.ACTUAL_SERVER_URL,
     password: process.env.ACTUAL_PASSWORD,
   })

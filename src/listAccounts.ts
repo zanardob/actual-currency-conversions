@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url"
 import actualApi from "@actual-app/api"
 import { ACTUAL_CONFIG } from "./config"
 
@@ -24,6 +25,6 @@ const listAccounts = async () => {
   }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
   listAccounts()
 }
